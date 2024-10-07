@@ -19,7 +19,7 @@ Seninel expects a json file with the following fields:
 ```
 For commandline help
 
-python sentinel.py --help 
+`python sentinel.py --help`
 
 ## How it works
 Sentinal has an "ImageProducer" that operates on its own thread that captures images at a configurable frequency.  When changes in the scene are detected, Sentinel will capture images as fast as it can until no changes are detected.
