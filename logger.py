@@ -3,6 +3,7 @@ import psutil
 
 class Logger:
   def __init__(self, zone, name):
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s - %(name)s', level=logging.INFO)
     self.zone = zone
     self.logger = logging.getLogger(name)
   # end def

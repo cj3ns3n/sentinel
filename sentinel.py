@@ -6,8 +6,6 @@ import json
 import logging
 import argparse
 
-logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s - %(name)s', level=logging.INFO)
-
 def getConfiguration(args):
   config = {'frequency': 20,
             'minDiffScore': 80,
