@@ -16,12 +16,12 @@ class Surveillance:
     self.storageBuffer = queue.Queue(bufferSize)
     self.prevImg = None
 
-    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, minContourArea, minDiffScore)
-
     if logger:
       self.logger = logger
     else:
       self.logger = logging.getLogger('Surveillance')
+
+    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, minContourArea, minDiffScore, logger=self.logger)
 
     self.state = 'init'
   # end def

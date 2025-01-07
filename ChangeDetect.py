@@ -22,7 +22,7 @@ class ChangeDetect:
     boxedImg = None
     changePairs = []
 
-    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevImg, nextImg, minContourArea=self.minContourArea, minDiffScore=self.minDiffScore)
+    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevImg, nextImg, minContourArea=self.minContourArea, minDiffScore=self.minDiffScore, logger=self.logger)
     changeDetectors = [structuralSimilarityChangeDetect]
 
     for detector in changeDetectors:
@@ -43,7 +43,7 @@ class ChangeDetect:
           detector = threadPair[1]
           self.logger.info('detected contours %d' % len(detector.diffContours))
           if len(detector.diffContours) > 0:
-            boxedImg = self.boxImage(nextImg, detector.diffContours, self.CONTOUR_COLORS[0])
+            boxedImg = self.boxImage(nextImg, detector.diffContours, self.CONTOUR_COLORS[1])
             self.activeStateCallback()
             done = True
             break
