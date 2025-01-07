@@ -10,7 +10,7 @@ class ChangeDetectStructuralSimilarity:
     self.minContourArea = minContourArea
     self.minDiffScore = minDiffScore
     self.score = minDiffScore
-    self.isDifferent = False
+    self.diffContours = []
 
     if logger:
       self.logger = logger
@@ -22,18 +22,11 @@ class ChangeDetectStructuralSimilarity:
   # end def
 
   def process(self):
-    self.logger.info('change detection')
-    diffContours = self.findDiffContours(self.prevImg, self.nextImg)
-
-    if len(diffContours) > 0:
-      self.isDifferent = True
-      self.logger.info('%d contours found' % (len(diffContours)))
-      self.boxedDiffImg = self.boxImage(self.nextImg, diffContours)
+    self.logger.info('structural similarity change detection')
+    self.findDiffContours(self.prevImg, self.nextImg)
   # end def
 
   def findDiffContours(self, before, after):
-    contours = []
-
     # Convert images to grayscale
     #cv2.imwrite('before.jpg', before)
     #cv2.imwrite('after.jpg', after)
@@ -64,29 +57,7 @@ class ChangeDetectStructuralSimilarity:
       thresh = cv2.threshold(diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
       contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
       contours = contours[0] if len(contours) == 2 else contours[1]
+      self.diffContours = contours
     # end if
-
-    return contours
-  # end def
-
-  def boxImage(self, image, contours):
-    boxedImg = image.copy()
-
-    minArea = self.minContourArea
-    maxArea = 0
-    for c in contours:
-      area = cv2.contourArea(c)
-      if area >= self.minContourArea:
-        if area > maxArea:
-          maxArea = area
-        if area < minArea:
-          minArea = area
-
-        x, y, w, h = cv2.boundingRect(c)
-        cv2.rectangle(boxedImg, (x, y), (x + w, y + h), (36,255,12), 2)
-    # end for
-    self.logger.info('area (min,max) (%d,%d)' % (minArea, maxArea))
-
-    return boxedImg
   # end def
 # end class

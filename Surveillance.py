@@ -5,18 +5,18 @@ import queue
 import threading
 import time
 from ChangeDetect import ChangeDetect
-from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
 from time import time
+
 
 class Surveillance:
   def __init__(self, imageProducer, storageObserver, minContourArea=400, minDiffScore=100, bufferSize=100, logger=None):
     self.imageProducer = imageProducer
     self.storageObserver = storageObserver
-    self.minContourArea = minContourArea
-    self.minDiffScore = minDiffScore
     self.imageBuffer = queue.Queue(bufferSize)
     self.storageBuffer = queue.Queue(bufferSize)
     self.prevImg = None
+
+    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, minContourArea, minDiffScore)
 
     if logger:
       self.logger = logger
@@ -45,7 +45,7 @@ class Surveillance:
       if self.prevImg:
         imgPair = [self.prevImg, img]
         changeProduct = self.diffImages(imgPair)
-        if type(changeProduct['changeImage']) != None:
+        if not isinstance(changeProduct['changeImage'], type(None)):
           self.storeImage(changeProduct)
       # end if
 
@@ -62,9 +62,7 @@ class Surveillance:
       nextEvent = accumList[1]
 
       prevEvent['processTimestamp'] = utils.getTimestampId()
-      structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevEvent['img'], nextEvent['img'], minContourArea=self.minContourArea, minDiffScore=self.minDiffScore)
-      changeDetector = ChangeDetect([structuralSimilarityChangeDetect], self.imageProducer.setActiveState)
-      changeImage = changeDetector.process()
+      changeImage = self.changeDetector.process(prevEvent['img'], nextEvent['img'])
 
       prevEvent['processDuration'] = time() - startTime
       prevEvent['changeImage'] = changeImage
