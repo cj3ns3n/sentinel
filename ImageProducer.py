@@ -75,7 +75,10 @@ class ImageProducer:
   def produce(self, queue):
     startTime = time.time()
 
-    while True:
+    #while True:
+    count = 0
+    while count < 5:
+      count += 1
       if self.shouldGetImage():
         try:
           self.logInfo("acquiring image")

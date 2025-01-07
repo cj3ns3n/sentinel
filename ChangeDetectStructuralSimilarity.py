@@ -2,7 +2,7 @@ from skimage.metrics import structural_similarity
 import cv2
 import logging
 
-class ImageDifferentiator:
+class ChangeDetectStructuralSimilarity:
   def __init__(self, prevImg, nextImg, minContourArea=400, minDiffScore=100, logger=None):
     self.prevImg = prevImg
     self.nextImg = nextImg
@@ -10,10 +10,12 @@ class ImageDifferentiator:
     self.minContourArea = minContourArea
     self.minDiffScore = minDiffScore
     self.score = minDiffScore
+    self.isDifferent = False
+
     if logger:
       self.logger = logger
     else:
-      self.logger = logging.getLogger('ImageDifferentiator')
+      self.logger = logging.getLogger('StructuralSimilarityChangeDetect')
 
     if type(prevImg) != None and type(nextImg) != None:
       self.process()
@@ -24,6 +26,7 @@ class ImageDifferentiator:
     diffContours = self.findDiffContours(self.prevImg, self.nextImg)
 
     if len(diffContours) > 0:
+      self.isDifferent = True
       self.logger.info('%d contours found' % (len(diffContours)))
       self.boxedDiffImg = self.boxImage(self.nextImg, diffContours)
   # end def
@@ -49,7 +52,7 @@ class ImageDifferentiator:
     self.score = score * 100
     self.logger.info('similarity: %0.2f; min similarity: %d' % (self.score, self.minDiffScore))
 
-    if self.score < self.minDiffScore:
+    if self.score > self.minDiffScore:
       # The diff image contains the actual image differences between the two images
       # and is represented as a floating point data type in the range [0,1]
       # so we must convert the array to 8-bit unsigned integers in the range

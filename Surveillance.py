@@ -4,7 +4,8 @@ import utils
 import queue
 import threading
 import time
-from ImageDifferentiator import ImageDifferentiator
+from ChangeDetect import ChangeDetect
+from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
 from time import time
 
 class Surveillance:
@@ -43,10 +44,9 @@ class Surveillance:
 
       if self.prevImg:
         imgPair = [self.prevImg, img]
-        diffProduct = self.diffImages(imgPair)
-        if self.filterImages(diffProduct):
-          self.imageProducer.setActiveState()
-          self.storeImage(diffProduct)
+        changeProduct = self.diffImages(imgPair)
+        if type(changeProduct['changeImage']) != None:
+          self.storeImage(changeProduct)
       # end if
 
       self.prevImg = img
@@ -55,18 +55,19 @@ class Surveillance:
 
   def diffImages(self, accumList):
     self.state = 'diff'
+    startTime = time()
 
     try:
       prevEvent = accumList[0]
       nextEvent = accumList[1]
 
       prevEvent['processTimestamp'] = utils.getTimestampId()
-      startTime = time()
-      diff = ImageDifferentiator(prevEvent['img'], nextEvent['img'], minContourArea=self.minContourArea, minDiffScore=self.minDiffScore)
+      structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevEvent['img'], nextEvent['img'], minContourArea=self.minContourArea, minDiffScore=self.minDiffScore)
+      changeDetector = ChangeDetect([structuralSimilarityChangeDetect], self.imageProducer.setActiveState)
+      changeImage = changeDetector.process()
 
       prevEvent['processDuration'] = time() - startTime
-      prevEvent['diffScore'] = diff.score
-      prevEvent['diffImg'] = diff.boxedDiffImg
+      prevEvent['changeImage'] = changeImage
 
       return prevEvent
     except Exception as ex:
@@ -75,23 +76,7 @@ class Surveillance:
       self.logErrorMessage('failure during change detection')
     # end try
 
-    return {'diffImg': None, 'diffScore': self.minDiffScore}
-  # end def
-
-  def filterImages(self, diffedProduct):
-    self.state = 'filter'
-
-    try:
-      diff = diffedProduct['diffScore'] < self.minDiffScore
-      self.logMessage('filter: %s' % diff)
-      return diff
-    except Exception as ex:
-      tb = traceback.format_exc()
-      self.logErrorMessage(tb)
-      self.logErrorMessage('failure during filter')
-    # end try
-
-    return False
+    return {'changeImage': None, 'processDuration': time() - startTime}
   # end def
 
   def storeImage(self, imgProduct):

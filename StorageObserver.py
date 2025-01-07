@@ -47,7 +47,7 @@ class StorageObserver:
 
     def prepImage(self, diffObj):
         imgId = diffObj['acquireTimestamp']
-        image = diffObj['diffImg']
+        image = diffObj['changeImage']
 
         saveFrame = image.copy()
         self.logInfo('dimensions' + repr(saveFrame.shape)) #[:2]))

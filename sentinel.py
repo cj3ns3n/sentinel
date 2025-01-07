@@ -3,7 +3,6 @@ from StorageObserver import StorageObserver
 from Surveillance import Surveillance
 from logger import Logger
 import json
-import logging
 import argparse
 
 def getConfiguration(args):
