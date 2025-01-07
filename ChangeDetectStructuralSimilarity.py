@@ -45,7 +45,7 @@ class ChangeDetectStructuralSimilarity:
     self.score = score * 100
     self.logger.info('similarity: %0.2f; min similarity: %d' % (self.score, self.minDiffScore))
 
-    if self.score > self.minDiffScore:
+    if self.score < self.minDiffScore:
       # The diff image contains the actual image differences between the two images
       # and is represented as a floating point data type in the range [0,1]
       # so we must convert the array to 8-bit unsigned integers in the range
