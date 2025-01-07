@@ -6,6 +6,8 @@ from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
 
 
 class ChangeDetect:
+  CONTOUR_COLORS = [(36,255,12), (51,153,255), (255,153,255), (255,178,102)]
+
   def __init__(self, activeStateCallback, minContourArea=400, minDiffScore=100, logger=None):
     self.activeStateCallback = activeStateCallback
     self.minContourArea = minContourArea
@@ -41,7 +43,7 @@ class ChangeDetect:
           detector = threadPair[1]
           self.logger.info('detected contours %d' % len(detector.diffContours))
           if len(detector.diffContours) > 0:
-            boxedImg = self.boxImage(nextImg, detector.diffContours)
+            boxedImg = self.boxImage(nextImg, detector.diffContours, self.CONTOUR_COLORS[0])
             self.activeStateCallback()
             done = True
             break
@@ -58,7 +60,7 @@ class ChangeDetect:
     return boxedImg
   # end def
 
-  def boxImage(self, image, contours):
+  def boxImage(self, image, contours, color):
     boxedImg = image.copy()
 
     minArea = self.minContourArea
@@ -72,7 +74,7 @@ class ChangeDetect:
           minArea = area
 
         x, y, w, h = cv2.boundingRect(c)
-        cv2.rectangle(boxedImg, (x, y), (x + w, y + h), (36,255,12), 2)
+        cv2.rectangle(boxedImg, (x, y), (x + w, y + h), color, 2)
     # end for
     self.logger.info('area (min,max) (%d,%d)' % (minArea, maxArea))
 
