@@ -10,7 +10,7 @@ class ChangeDetectStructuralSimilarity:
     self.minContourArea = minContourArea
     self.minDiffScore = minDiffScore
     self.score = minDiffScore
-    self.diffContours = []
+    self.diffAreas = {}
 
     if logger:
       self.logger = logger
@@ -57,7 +57,13 @@ class ChangeDetectStructuralSimilarity:
       thresh = cv2.threshold(diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
       contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
       contours = contours[0] if len(contours) == 2 else contours[1]
-      self.diffContours = contours
+      count = 1
+      for c in contours:
+        area = cv2.contourArea(c)
+        if area >= self.minContourArea:
+          x, y, w, h = cv2.boundingRect(c)
+          self.diffAreas[str(count)] = (x, y, x+w, y+h)
+          count += 1
     # end if
   # end def
 # end class

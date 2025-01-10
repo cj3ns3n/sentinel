@@ -2,6 +2,7 @@ import logging
 import threading
 import time
 import cv2
+import utils
 from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
 
 
@@ -22,7 +23,7 @@ class ChangeDetect:
     boxedImg = None
     changePairs = []
 
-    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevImg, nextImg, minContourArea=self.minContourArea, minDiffScore=self.minDiffScore, logger=self.logger)
+    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevImg, nextImg, minContourArea=self.minContourArea, minDiffScore=self.minDiffScore)
     changeDetectors = [structuralSimilarityChangeDetect]
 
     for detector in changeDetectors:
@@ -41,9 +42,9 @@ class ChangeDetect:
           alive = True
         else:
           detector = threadPair[1]
-          self.logger.info('detected contours %d' % len(detector.diffContours))
-          if len(detector.diffContours) > 0:
-            boxedImg = self.boxImage(nextImg, detector.diffContours, self.CONTOUR_COLORS[1])
+          self.logger.info('detected contours %d' % len(detector.diffAreas))
+          if len(detector.diffAreas) > 0:
+            boxedImg = self.boxImage(nextImg, detector.diffAreas, self.CONTOUR_COLORS[0])
             self.activeStateCallback()
             done = True
             break
@@ -60,23 +61,12 @@ class ChangeDetect:
     return boxedImg
   # end def
 
-  def boxImage(self, image, contours, color):
+  def boxImage(self, image, areas, color):
     boxedImg = image.copy()
 
-    minArea = self.minContourArea
-    maxArea = 0
-    for c in contours:
-      area = cv2.contourArea(c)
-      if area >= self.minContourArea:
-        if area > maxArea:
-          maxArea = area
-        if area < minArea:
-          minArea = area
-
-        x, y, w, h = cv2.boundingRect(c)
-        cv2.rectangle(boxedImg, (x, y), (x + w, y + h), color, 2)
-    # end for
-    self.logger.info('area (min,max) (%d,%d)' % (minArea, maxArea))
+    for id, area in areas.items():
+      cv2.rectangle(boxedImg, (area[0], area[1]), (area[2], area[3]), color, 2)
+      utils.addText(boxedImg, id, (area[0], area[1]), color=color)
 
     return boxedImg
   # end def
