@@ -101,8 +101,6 @@ class ImageProducer:
         if sleepTime > 0:
           self.logInfo('sleeping %f sec' % (sleepTime))
           time.sleep(sleepTime)
-      else:
-        self.logInfo('no sleeping')
       # end if
     #end while
   # end def
