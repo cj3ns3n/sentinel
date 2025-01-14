@@ -1,26 +1,28 @@
 from skimage.metrics import structural_similarity
 import cv2
-import logging
+from logger import Logger
 
 class ChangeDetectStructuralSimilarity:
-  def __init__(self, prevImg, nextImg, minContourArea=400, minDiffScore=100, logger=None):
+  def __init__(self, prevImg, nextImg, minContourArea=400, minDiffScore=100, color=(36,255,12), logger=None):
     self.prevImg = prevImg
     self.nextImg = nextImg
     self.boxedDiffImg = None
     self.minContourArea = minContourArea
     self.minDiffScore = minDiffScore
     self.score = minDiffScore
+    self.color = color
     self.diffAreas = {}
 
     if logger:
       self.logger = logger
     else:
-      self.logger = logging.getLogger('StructuralSimilarityChangeDetect')
+      self.logger = Logger('', 'StructuralSimilarityChangeDetect')
   # end def
 
   def process(self):
     self.logger.info('structural similarity change detection')
     self.findDiffContours(self.prevImg, self.nextImg)
+    return self
   # end def
 
   def findDiffContours(self, before, after):

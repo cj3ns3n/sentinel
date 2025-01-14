@@ -1,12 +1,13 @@
 from ultralytics import YOLO
-import logging
+from logger import Logger
+
 
 class ChangeDetectYolo:
-  def __init__(self, prevImg, nextImg, modelName='yolo11s.pt', confidenceThreshold=0.3, logger=None):
+  def __init__(self, prevImg, nextImg, modelName='yolo11s.pt', confidenceThreshold=0.3, color=(51,153,255), logger=None):
     if logger:
       self.logger = logger
     else:
-      self.logger = logging.getLogger('YoloChangeDetect')
+      self.logger = Logger('', 'YoloChangeDetect')
 
     self.prevImg = prevImg
     self.nextImg = nextImg
@@ -14,6 +15,7 @@ class ChangeDetectYolo:
     self.logger.info('yolo modle: "%s"' % modelName)
     self.model = YOLO(modelName)
     self.confidenceThreshold = confidenceThreshold
+    self.color = color
     self.diffAreas = {}
   # end def
 
@@ -38,6 +40,8 @@ class ChangeDetectYolo:
         # draw the bounding box on the frame
         #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
     # end for
+
+    return self
   # end def
 # end class
 

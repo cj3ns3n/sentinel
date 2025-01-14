@@ -1,6 +1,5 @@
-import logging
-import threading
-import time
+from logger import Logger
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import cv2
 import utils
 from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
@@ -18,47 +17,31 @@ class ChangeDetect:
     if logger:
       self.logger = logger
     else:
-      self.logger = logging.getLogger('ChangeDetect')
+      self.logger = Logger('', 'ChangeDetect')
 
   def process(self, prevImg, nextImg):
     boxedImg = None
-    changePairs = []
 
     structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevImg, nextImg, minContourArea=self.minContourArea, minDiffScore=self.minDiffScore)
-    #structuralSimilarityChangeDetect = ChangeDetectYolo(prevImg, nextImg)
-    changeDetectors = [structuralSimilarityChangeDetect]
+    yoloChangeDetect = ChangeDetectYolo(prevImg, nextImg)
+    changeDetectors = [structuralSimilarityChangeDetect, yoloChangeDetect]
 
-    for detector in changeDetectors:
-      thread = threading.Thread(target=detector.process)
-      thread.daemon = True
-      thread.start()
-      changePairs.append((thread, detector))
-    # end for
+    with ThreadPoolExecutor() as executor:
+      futures = [executor.submit(dector.process) for dector in changeDetectors]
 
-    done = False
-    while not done:
-      alive = False
-      for threadPair in changePairs:
-        thread = threadPair[0]
-        if thread.is_alive():
-          alive = True
-        else:
-          detector = threadPair[1]
-          self.logger.info('detected contours %d' % len(detector.diffAreas))
-          if len(detector.diffAreas) > 0:
-            boxedImg = self.boxImage(nextImg, detector.diffAreas, self.CONTOUR_COLORS[0])
+      self.logger.info('starting detectors')
+      for future in as_completed(futures):
+        try:
+          detector = future.result()
+          diffAreas = detector.diffAreas
+          if len(diffAreas) > 0:
+            if type(boxedImg) == type(None):
+              boxedImg = nextImg.copy()
+            boxedImg = self.boxImage(boxedImg, diffAreas, detector.color)
             self.activeStateCallback()
-            done = True
-            break
-        # end if
-        time.sleep(0.01)
-
-        done = done or not alive
-      # end for
-    # end while
-
-    for threadPair in changePairs:
-      threadPair[0].join()
+        except Exception as e:
+          self.logger.error(repr(e))
+    self.logger.info('detectors completed')
 
     return boxedImg
   # end def
