@@ -8,19 +8,18 @@ class ChangeDetectYolo:
     else:
       self.logger = logging.getLogger('YoloChangeDetect')
 
+    self.prevImg = prevImg
+    self.nextImg = nextImg
     self.modelName = modelName
     self.logger.info('yolo modle: "%s"' % modelName)
     self.model = YOLO(modelName)
     self.confidenceThreshold = confidenceThreshold
     self.diffAreas = {}
-
-    if type(prevImg) != None and type(nextImg) != None:
-      self.process(prevImg, nextImg)
   # end def
 
-  def process(self, prevImg, nextImg):
+  def process(self):
     self.logger.info('yolo "%s" change detection' % self.modelName)
-    modelResp = self.model(nextImg)
+    modelResp = self.model(self.nextImg)
     detections = modelResp[0]
 
     for data in detections.boxes.data.tolist():
