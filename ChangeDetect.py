@@ -4,6 +4,7 @@ import time
 import cv2
 import utils
 from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
+from ChangeDetectYolo import ChangeDetectYolo
 
 
 class ChangeDetect:
@@ -24,6 +25,7 @@ class ChangeDetect:
     changePairs = []
 
     structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevImg, nextImg, minContourArea=self.minContourArea, minDiffScore=self.minDiffScore)
+    #structuralSimilarityChangeDetect = ChangeDetectYolo(prevImg, nextImg)
     changeDetectors = [structuralSimilarityChangeDetect]
 
     for detector in changeDetectors:
@@ -65,8 +67,8 @@ class ChangeDetect:
     boxedImg = image.copy()
 
     for id, area in areas.items():
-      cv2.rectangle(boxedImg, (area[0], area[1]), (area[2], area[3]), color, 2)
-      utils.addText(boxedImg, id, (area[0], area[1]), color=color)
+      cv2.rectangle(boxedImg, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
+      utils.addText(boxedImg, id, (int(area[0]), int(area[1])), color=color)
 
     return boxedImg
   # end def
