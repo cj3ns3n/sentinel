@@ -16,9 +16,6 @@ class ChangeDetectStructuralSimilarity:
       self.logger = logger
     else:
       self.logger = logging.getLogger('StructuralSimilarityChangeDetect')
-
-    if type(prevImg) != None and type(nextImg) != None:
-      self.process()
   # end def
 
   def process(self):
