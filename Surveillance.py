@@ -21,7 +21,7 @@ class Surveillance:
     else:
       self.logger = logging.getLogger('Surveillance')
 
-    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, minContourArea, minDiffScore, logger=self.logger)
+    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, minContourArea, minDiffScore)
 
     self.state = 'init'
   # end def
