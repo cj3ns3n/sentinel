@@ -9,7 +9,7 @@ class ChangeDetectYolo:
     else:
       self.logger = Logger('YoloChangeDetect')
 
-    self.modelName = modelName
+    self.name = modelName
     self.logger.info('yolo model: "%s"' % modelName)
     self.model = YOLO(modelName)
     self.confidenceThreshold = confidenceThreshold
@@ -17,7 +17,7 @@ class ChangeDetectYolo:
   # end def
 
   def process(self, prevImg, nextImg):
-    self.logger.info('yolo "%s" change detection' % self.modelName)
+    self.logger.info('yolo "%s" change detection' % self.name)
     modelResp = self.model(nextImg)
     detections = modelResp[0]
     diffAreas = {}
@@ -39,7 +39,7 @@ class ChangeDetectYolo:
         #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
     # end for
 
-    return {'diffAreas': diffAreas, 'color': self.color}
+    return {'diffAreas': diffAreas, 'name': self.name}
   # end def
 # end class
 

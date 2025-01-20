@@ -44,7 +44,8 @@ class Surveillance:
       if self.prevImg:
         imgPair = [self.prevImg, img]
         changeProduct = self.diffImages(imgPair)
-        if not isinstance(changeProduct['changeImage'], type(None)):
+        if len(changeProduct['detections']) > 0:
+          changeProduct['annotatedImage'] = utils.annotateImage(changeProduct)
           self.storeImage(changeProduct)
       # end if
 
@@ -60,13 +61,12 @@ class Surveillance:
       prevEvent = accumList[0]
       nextEvent = accumList[1]
 
-      prevEvent['processTimestamp'] = utils.getTimestampId()
-      changeImage = self.changeDetector.process(prevEvent['img'], nextEvent['img'])
+      nextEvent['processTimestamp'] = utils.getTimestampId()
+      self.changeDetector.process(prevEvent, nextEvent)
 
-      prevEvent['processDuration'] = time() - startTime
-      prevEvent['changeImage'] = changeImage
+      nextEvent['processDuration'] = time() - startTime
 
-      return prevEvent
+      return nextEvent
     except Exception as ex:
       tb = traceback.format_exc()
       self.logErrorMessage(tb)

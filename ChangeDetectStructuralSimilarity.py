@@ -9,6 +9,7 @@ class ChangeDetectStructuralSimilarity:
     self.minDiffScore = minDiffScore
     self.score = minDiffScore
     self.color = color
+    self.name = 'structural-similarity'
 
     if logger:
       self.logger = logger
@@ -59,6 +60,6 @@ class ChangeDetectStructuralSimilarity:
           count += 1
     # end if
 
-    return {'diffAreas': diffAreas, 'color': self.color}
+    return {'diffAreas': diffAreas, 'name': self.name}
   # end def
 # end class
