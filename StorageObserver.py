@@ -53,7 +53,10 @@ class StorageObserver:
         self.logInfo('dimensions' + repr(saveFrame.shape)) #[:2]))
 
         if saveFrame.shape[0] > 1000:
-            score = diffObj['diffScore']
+            if 'diffScore' in diffObj:
+                score = '%0.2f' % diffObj['diffScore']
+            else:
+                score = '--'
             processTimestamp = diffObj['processTimestamp']
             processDuration = diffObj['processDuration']
 
@@ -61,7 +64,7 @@ class StorageObserver:
             utils.addText(saveFrame, 'processed: ' + processTimestamp, (10, 70))
             utils.addText(saveFrame, 'saved:     ' + utils.getTimestampId(), (10, 100))
             utils.addText(saveFrame, 'duration: %0.2f' % (processDuration), (10, 130))
-            utils.addText(saveFrame, 'score: %0.2f' % (score), (10, 160))
+            utils.addText(saveFrame, 'score: %s' % (score), (10, 160))
             utils.addText(saveFrame, 'buffer-size: %d' % (diffObj['buffer-size']), (10, 190))
         else:
             processTimestamp = diffObj['processTimestamp']
