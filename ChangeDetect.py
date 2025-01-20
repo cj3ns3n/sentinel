@@ -28,7 +28,7 @@ class ChangeDetect:
     changeDetectors = [structuralSimilarityChangeDetect, yoloChangeDetect]
 
     with ThreadPoolExecutor() as executor:
-      futures = [executor.submit(dector.process) for dector in changeDetectors]
+      futures = [executor.submit(detector.process) for detector in changeDetectors]
 
       self.logger.info('starting detectors')
       for future in as_completed(futures):
