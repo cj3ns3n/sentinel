@@ -1,5 +1,6 @@
 from logger import Logger
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import traceback
 import cv2
 import utils
 from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
@@ -40,6 +41,7 @@ class ChangeDetect:
             boxedImg = self.boxImage(boxedImg, diffAreas, detector.color)
             self.activeStateCallback()
         except Exception as e:
+          self.logger.error(traceback.format_exc())
           self.logger.error(repr(e))
     self.logger.info('detectors completed')
 
@@ -47,12 +49,10 @@ class ChangeDetect:
   # end def
 
   def boxImage(self, image, areas, color):
-    boxedImg = image.copy()
-
     for id, area in areas.items():
-      cv2.rectangle(boxedImg, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
-      utils.addText(boxedImg, id, (int(area[0]), int(area[1])), color=color)
+      cv2.rectangle(image, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
+      utils.addText(image, id, (int(area[0]), int(area[1])), color=color)
 
-    return boxedImg
+    return image
   # end def
 # end class
