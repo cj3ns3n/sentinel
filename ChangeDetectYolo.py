@@ -3,14 +3,12 @@ from logger import Logger
 
 
 class ChangeDetectYolo:
-  def __init__(self, prevImg, nextImg, modelName='yolo11s.pt', confidenceThreshold=0.3, color=(51,153,255), logger=None):
+  def __init__(self, modelName='yolo11s.pt', confidenceThreshold=0.3, color=(51,153,255), logger=None):
     if logger:
       self.logger = logger
     else:
       self.logger = Logger('', 'YoloChangeDetect')
 
-    self.prevImg = prevImg
-    self.nextImg = nextImg
     self.modelName = modelName
     self.logger.info('yolo modle: "%s"' % modelName)
     self.model = YOLO(modelName)
@@ -19,9 +17,9 @@ class ChangeDetectYolo:
     self.diffAreas = {}
   # end def
 
-  def process(self):
+  def process(self, prevImg, nextImg):
     self.logger.info('yolo "%s" change detection' % self.modelName)
-    modelResp = self.model(self.nextImg)
+    modelResp = self.model(nextImg)
     detections = modelResp[0]
 
     for data in detections.boxes.data.tolist():

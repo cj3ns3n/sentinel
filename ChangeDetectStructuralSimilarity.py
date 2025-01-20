@@ -3,9 +3,7 @@ import cv2
 from logger import Logger
 
 class ChangeDetectStructuralSimilarity:
-  def __init__(self, prevImg, nextImg, minContourArea=400, minDiffScore=100, color=(36,255,12), logger=None):
-    self.prevImg = prevImg
-    self.nextImg = nextImg
+  def __init__(self, minContourArea=400, minDiffScore=100, color=(36,255,12), logger=None):
     self.boxedDiffImg = None
     self.minContourArea = minContourArea
     self.minDiffScore = minDiffScore
@@ -19,9 +17,9 @@ class ChangeDetectStructuralSimilarity:
       self.logger = Logger('', 'StructuralSimilarityChangeDetect')
   # end def
 
-  def process(self):
+  def process(self, prevImg, nextImg):
     self.logger.info('structural similarity change detection')
-    self.findDiffContours(self.prevImg, self.nextImg)
+    self.findDiffContours(prevImg, nextImg)
     return self
   # end def
 

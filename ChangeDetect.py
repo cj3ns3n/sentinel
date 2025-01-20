@@ -12,23 +12,22 @@ class ChangeDetect:
 
   def __init__(self, activeStateCallback, minContourArea=400, minDiffScore=100, logger=None):
     self.activeStateCallback = activeStateCallback
-    self.minContourArea = minContourArea
-    self.minDiffScore = minDiffScore
 
     if logger:
       self.logger = logger
     else:
       self.logger = Logger('', 'ChangeDetect')
 
+    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(minContourArea=minContourArea, minDiffScore=minDiffScore)
+    yoloChangeDetect = ChangeDetectYolo()
+    self.changeDetectors = [structuralSimilarityChangeDetect, yoloChangeDetect]
+  # end def
+
   def process(self, prevImg, nextImg):
     boxedImg = None
 
-    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(prevImg, nextImg, minContourArea=self.minContourArea, minDiffScore=self.minDiffScore)
-    yoloChangeDetect = ChangeDetectYolo(prevImg, nextImg)
-    changeDetectors = [structuralSimilarityChangeDetect, yoloChangeDetect]
-
     with ThreadPoolExecutor() as executor:
-      futures = [executor.submit(detector.process) for detector in changeDetectors]
+      futures = [executor.submit(detector.process, prevImg, nextImg) for detector in self.changeDetectors]
 
       self.logger.info('starting detectors')
       for future in as_completed(futures):
