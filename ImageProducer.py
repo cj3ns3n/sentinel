@@ -2,7 +2,7 @@ import urllib.request
 import base64
 import time
 import cv2
-import np
+import numpy as np
 import utils
 import logging
 import threading
