@@ -2,6 +2,7 @@ from ImageProducer import ImageProducer
 from StorageObserver import StorageObserver
 from Surveillance import Surveillance
 from logger import Logger
+from importlib import import_module
 import json
 import argparse
 
@@ -18,6 +19,7 @@ def getConfiguration(args):
   if args.config_file:
     with open(args.config_file, 'r') as configFile:
       config = config | json.load(configFile)
+      print(config)
   else:
     config['url'] = args.url
     if args.zone:
@@ -29,6 +31,23 @@ def getConfiguration(args):
   return config
 # end def
 
+def loadDetectors(detectorConfigs):
+  detectors = []
+  for detector in config['detectors']:
+    detectorModule = import_module(detector['name'])
+    initStr = 'detectorModule.%s(' % detector['name']
+    for key, value in detector.items():
+      if key != 'name':
+        initStr += key + '=' + str(value) + ','
+    # end for
+    if len(detector) > 1:
+      initStr = initStr[:-1]
+    initStr += ')'
+
+    detectors.append(eval(initStr))
+
+  return detectors
+# end def
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Collect and store IMINT')
@@ -41,9 +60,10 @@ if __name__ == '__main__':
   parser.add_argument('--config-file', help="file containing configuration values")
 
   config = getConfiguration(parser.parse_args())
-
   logger = Logger(config['zone'], 'main')
   logger.info(config)
+
+  detectors = loadDetectors(config['detectors'])
 
   credentials = None
   if 'login' in config.keys():
@@ -54,8 +74,8 @@ if __name__ == '__main__':
   if not config['localStorageOnly']:
     from storageGCS import SurveilUploader
     uploader = SurveilUploader('surveil', config['zone'], Logger(config['zone'], 'SurveilUploader'))
-  storageObserver = StorageObserver(zone = config['zone'], remoteUploader = uploader, logger = Logger(config['zone'], 'StorageObserver'))
+  storageObserver = StorageObserver(zone=config['zone'], remoteUploader=uploader, logger=Logger(config['zone'], 'StorageObserver'))
 
-  surveillance = Surveillance(imgProducer, storageObserver, config['minContourArea'], config['minDiffScore'], logger = Logger(config['zone'], 'Surveillance'))
+  surveillance = Surveillance(imgProducer, storageObserver, detectors, logger = Logger(config['zone'], 'Surveillance'))
   surveillance.execute()
 # end if

@@ -4,13 +4,11 @@ import utils
 import queue
 import threading
 from ChangeDetect import ChangeDetect
-from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
-from ChangeDetectYolo import ChangeDetectYolo
 from time import time
 
 
 class Surveillance:
-  def __init__(self, imageProducer, storageObserver, minContourArea=400, minDiffScore=100, bufferSize=100, logger=None):
+  def __init__(self, imageProducer, storageObserver, detectors, bufferSize=100, logger=None):
     self.imageProducer = imageProducer
     self.storageObserver = storageObserver
     self.imageBuffer = queue.Queue(bufferSize)
@@ -22,10 +20,7 @@ class Surveillance:
     else:
       self.logger = logging.getLogger('Surveillance')
 
-    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(minContourArea=minContourArea, minDiffScore=minDiffScore)
-    yoloChangeDetect = ChangeDetectYolo()
-
-    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, [structuralSimilarityChangeDetect, yoloChangeDetect])
+    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, detectors)
 
     self.state = 'init'
   # end def
