@@ -43,5 +43,10 @@ class TestChangeDetect(unittest.TestCase):
     boxedImg = changeDetect(image1, image2, self)
     cv2.imwrite('test_ChangeDetect_front5-front6.jpg', boxedImg)
 
+    image1 = cv2.imread('test/front6.jpg')
+    image2 = cv2.imread('test/front6.jpg')
+    boxedImg = changeDetect(image1, image2, self)
+    cv2.imwrite('test_ChangeDetect_front6-front6.jpg', boxedImg)
+
 if __name__ == '__main__':
   unittest.main()
