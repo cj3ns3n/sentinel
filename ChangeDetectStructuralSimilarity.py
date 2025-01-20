@@ -9,7 +9,6 @@ class ChangeDetectStructuralSimilarity:
     self.minDiffScore = minDiffScore
     self.score = minDiffScore
     self.color = color
-    self.diffAreas = {}
 
     if logger:
       self.logger = logger
@@ -19,18 +18,15 @@ class ChangeDetectStructuralSimilarity:
 
   def process(self, prevImg, nextImg):
     self.logger.info('structural similarity change detection')
-    self.findDiffContours(prevImg, nextImg)
-    return self
-  # end def
+    diffAreas = {}
 
-  def findDiffContours(self, before, after):
-    # Convert images to grayscale
+  # Convert images to grayscale
     #cv2.imwrite('before.jpg', before)
     #cv2.imwrite('after.jpg', after)
 
-    before_gray = cv2.cvtColor(before, cv2.COLOR_BGR2GRAY)
+    before_gray = cv2.cvtColor(prevImg, cv2.COLOR_BGR2GRAY)
     before_gray = cv2.GaussianBlur(before_gray, (21, 21), 0)
-    after_gray = cv2.cvtColor(after, cv2.COLOR_BGR2GRAY)
+    after_gray = cv2.cvtColor(nextImg, cv2.COLOR_BGR2GRAY)
     after_gray = cv2.GaussianBlur(after_gray, (21, 21), 0)
 
     #cv2.imwrite('before_gray.jpg', before_gray)
@@ -59,8 +55,10 @@ class ChangeDetectStructuralSimilarity:
         area = cv2.contourArea(c)
         if area >= self.minContourArea:
           x, y, w, h = cv2.boundingRect(c)
-          self.diffAreas[str(count)] = (x, y, x+w, y+h)
+          diffAreas[str(count)] = (x, y, x+w, y+h)
           count += 1
     # end if
+
+    return {'diffAreas': diffAreas, 'color': self.color}
   # end def
 # end class

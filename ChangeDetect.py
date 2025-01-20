@@ -3,24 +3,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import traceback
 import cv2
 import utils
-from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
-from ChangeDetectYolo import ChangeDetectYolo
 
 
 class ChangeDetect:
   CONTOUR_COLORS = [(36,255,12), (51,153,255), (255,153,255), (255,178,102)]
 
-  def __init__(self, activeStateCallback, minContourArea=400, minDiffScore=100, logger=None):
+  def __init__(self, activeStateCallback, changeDetectors):
     self.activeStateCallback = activeStateCallback
-
-    if logger:
-      self.logger = logger
-    else:
-      self.logger = Logger('', 'ChangeDetect')
-
-    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(minContourArea=minContourArea, minDiffScore=minDiffScore)
-    yoloChangeDetect = ChangeDetectYolo()
-    self.changeDetectors = [structuralSimilarityChangeDetect, yoloChangeDetect]
+    self.logger = Logger('', 'ChangeDetect')
+    self.changeDetectors = changeDetectors
   # end def
 
   def process(self, prevImg, nextImg):
@@ -32,12 +23,14 @@ class ChangeDetect:
       self.logger.info('starting detectors')
       for future in as_completed(futures):
         try:
-          detector = future.result()
-          diffAreas = detector.diffAreas
+          diffResp = future.result()
+          diffAreas = diffResp['diffAreas']
+          color = diffResp['color']
+
           if len(diffAreas) > 0:
             if type(boxedImg) == type(None):
               boxedImg = nextImg.copy()
-            boxedImg = self.boxImage(boxedImg, diffAreas, detector.color)
+            boxedImg = self.boxImage(boxedImg, diffAreas, color)
             self.activeStateCallback()
         except Exception as e:
           self.logger.error(traceback.format_exc())

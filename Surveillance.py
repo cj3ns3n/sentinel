@@ -3,8 +3,9 @@ import traceback
 import utils
 import queue
 import threading
-import time
 from ChangeDetect import ChangeDetect
+from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
+from ChangeDetectYolo import ChangeDetectYolo
 from time import time
 
 
@@ -21,7 +22,10 @@ class Surveillance:
     else:
       self.logger = logging.getLogger('Surveillance')
 
-    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, minContourArea, minDiffScore)
+    structuralSimilarityChangeDetect = ChangeDetectStructuralSimilarity(minContourArea=minContourArea, minDiffScore=minDiffScore)
+    yoloChangeDetect = ChangeDetectYolo()
+
+    self.changeDetector = ChangeDetect(self.imageProducer.setActiveState, [structuralSimilarityChangeDetect, yoloChangeDetect])
 
     self.state = 'init'
   # end def

@@ -10,17 +10,17 @@ class ChangeDetectYolo:
       self.logger = Logger('', 'YoloChangeDetect')
 
     self.modelName = modelName
-    self.logger.info('yolo modle: "%s"' % modelName)
+    self.logger.info('yolo model: "%s"' % modelName)
     self.model = YOLO(modelName)
     self.confidenceThreshold = confidenceThreshold
     self.color = color
-    self.diffAreas = {}
   # end def
 
   def process(self, prevImg, nextImg):
     self.logger.info('yolo "%s" change detection' % self.modelName)
     modelResp = self.model(nextImg)
     detections = modelResp[0]
+    diffAreas = {}
 
     for data in detections.boxes.data.tolist():
       # extract the confidence (i.e., probability) associated with the detection
@@ -33,13 +33,13 @@ class ChangeDetectYolo:
         id = int(data[5])
         name = '%3d_%s' % (id, detections.names[id])
         self.logger.info('detected: %s: %f' % (name, confidence))
-        self.diffAreas[name] = (data[:4])
+        diffAreas[name] = (data[:4])
         # if the confidence is greater than the minimum confidence,
         # draw the bounding box on the frame
         #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
     # end for
 
-    return self
+    return {'diffAreas': diffAreas, 'color': self.color}
   # end def
 # end class
 
