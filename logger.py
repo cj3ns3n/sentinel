@@ -12,19 +12,19 @@ class Logger:
     if self.zone:
       msg = self.zone + ': ' + msg
     self.logger.info(msg)
-    self.logMemory()
+    #self.logMemory()
 
   def warn(self, msg):
     if self.zone:
       msg = self.zone + ': ' + msg
     self.logger.warning(msg)
-    self.logMemory()
+    #self.logMemory()
 
   def error(self, msg):
     if self.zone:
       msg = self.zone + ': ' + msg
     self.logger.error(msg)
-    self.logMemory()
+    #self.logMemory()
 
   def logMemory(self):
     vm = psutil.virtual_memory()
