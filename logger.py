@@ -2,22 +2,28 @@ import logging
 import psutil
 
 class Logger:
-  def __init__(self, zone, name):
+  def __init__(self, name, zone=None):
     logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s: %(message)s', level=logging.INFO)
     self.zone = zone
     self.logger = logging.getLogger(name)
   # end def
 
   def info(self, msg):
-    self.logger.info('%s: %s' % (self.zone, msg))
+    if self.zone:
+      msg = self.zone + ': ' + msg
+    self.logger.info(msg)
     self.logMemory()
 
   def warn(self, msg):
-    self.logger.warning('%s: %s' % (self.zone, msg))
+    if self.zone:
+      msg = self.zone + ': ' + msg
+    self.logger.warning(msg)
     self.logMemory()
 
   def error(self, msg):
-    self.logger.error('%s: %s' % (self.zone, msg))
+    if self.zone:
+      msg = self.zone + ': ' + msg
+    self.logger.error(msg)
     self.logMemory()
 
   def logMemory(self):

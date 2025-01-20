@@ -4,9 +4,10 @@ import time
 import cv2
 import numpy as np
 import utils
-import logging
 import threading
 import psutil
+from logger import Logger
+
 
 class ImageProducer:
   def __init__(self, imageUrl, credentials=None, frequency=2.5, count=None, logger=None):
@@ -19,7 +20,7 @@ class ImageProducer:
     if logger:
       self.logger = logger
     else:
-      self.logger = logging.getLogger('ImageProducer')
+      self.logger = Logger('ImageProducer')
 
     if imageUrl:
       self.getImage = self.captureWeb
@@ -141,7 +142,7 @@ if __name__ == '__main__':
   from logger import Logger
 
   logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s - %(name)s', level=logging.INFO)
-  logger = Logger('test', 'main')
+  logger = Logger('main')
 
   imageBuffer = queue.Queue(5)
 

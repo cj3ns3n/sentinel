@@ -10,7 +10,7 @@ class ChangeDetect:
 
   def __init__(self, activeStateCallback, changeDetectors):
     self.activeStateCallback = activeStateCallback
-    self.logger = Logger('', 'ChangeDetect')
+    self.logger = Logger('ChangeDetect')
     self.changeDetectors = changeDetectors
   # end def
 

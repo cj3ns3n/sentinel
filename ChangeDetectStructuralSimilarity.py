@@ -13,7 +13,7 @@ class ChangeDetectStructuralSimilarity:
     if logger:
       self.logger = logger
     else:
-      self.logger = Logger('', 'StructuralSimilarityChangeDetect')
+      self.logger = Logger('StructuralSimilarityChangeDetect')
   # end def
 
   def process(self, prevImg, nextImg):

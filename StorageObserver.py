@@ -1,8 +1,9 @@
 import utils
 import cv2
-import logging
 import os.path
 import threading
+from logger import Logger
+
 
 class StorageObserver:
     def __init__(self, zone=None, remoteUploader=None, logger=None):
@@ -11,7 +12,7 @@ class StorageObserver:
         if logger:
             self.logger = logger
         else:
-          self.logger = logging.getLogger('StorageObserver')
+          self.logger = Logger('StorageObserver')
     # end def
 
     def monitorQueue(self, imgQueue):

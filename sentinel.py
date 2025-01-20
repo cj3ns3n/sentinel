@@ -60,8 +60,8 @@ if __name__ == '__main__':
   parser.add_argument('--config-file', help="file containing configuration values")
 
   config = getConfiguration(parser.parse_args())
-  logger = Logger(config['zone'], 'main')
-  logger.info(config)
+  logger = Logger('main', config['zone'])
+  logger.info(repr(config))
 
   detectors = loadDetectors(config['detectors'])
 
@@ -69,13 +69,13 @@ if __name__ == '__main__':
   if 'login' in config.keys():
     credentials = config
 
-  imgProducer = ImageProducer(config['url'], credentials = credentials, frequency = config['frequency'], logger = Logger(config['zone'], 'ImageProducer'))
+  imgProducer = ImageProducer(config['url'], credentials = credentials, frequency = config['frequency'], logger = Logger('ImageProducer', config['zone']))
   uploader = None
   if not config['localStorageOnly']:
     from storageGCS import SurveilUploader
-    uploader = SurveilUploader('surveil', config['zone'], Logger(config['zone'], 'SurveilUploader'))
-  storageObserver = StorageObserver(zone=config['zone'], remoteUploader=uploader, logger=Logger(config['zone'], 'StorageObserver'))
+    uploader = SurveilUploader('surveil', config['zone'], Logger('SurveilUploader'), config['zone'])
+  storageObserver = StorageObserver(zone=config['zone'], remoteUploader=uploader, logger=Logger('StorageObserver', config['zone']))
 
-  surveillance = Surveillance(imgProducer, storageObserver, detectors, logger = Logger(config['zone'], 'Surveillance'))
+  surveillance = Surveillance(imgProducer, storageObserver, detectors, logger = Logger('Surveillance', config['zone']))
   surveillance.execute()
 # end if

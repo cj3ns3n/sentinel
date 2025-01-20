@@ -7,7 +7,7 @@ class ChangeDetectYolo:
     if logger:
       self.logger = logger
     else:
-      self.logger = Logger('', 'YoloChangeDetect')
+      self.logger = Logger('YoloChangeDetect')
 
     self.modelName = modelName
     self.logger.info('yolo model: "%s"' % modelName)
