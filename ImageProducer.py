@@ -63,9 +63,7 @@ class ImageProducer:
       image = cv2.imdecode(np.fromstring(resp.read(), dtype=np.uint8), cv2.IMREAD_COLOR)
       #utils.addText(image, 'acquired: ' + utils.getTimestampId(), (10, 20))
 
-      if image is not None:
-        self.logInfo('dimensions' + repr(image.shape[:2]))
-      else:
+      if image is None:
         self.logErr('failed to decode image')
     except Exception as ex:
       self.logger.error(ex)
