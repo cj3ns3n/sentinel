@@ -10,11 +10,11 @@ class ChangeDetect:
     self.changeDetectors = changeDetectors
   # end def
 
-  def process(self, prevImg, nextImg):
-    nextImg['detections'] = []
+  def process(self, prevEvent, nextEvent):
+    nextEvent['detections'] = []
 
     with ThreadPoolExecutor() as executor:
-      futures = [executor.submit(detector.process, prevImg['img'], nextImg['img']) for detector in self.changeDetectors]
+      futures = [executor.submit(detector.process, prevEvent, nextEvent) for detector in self.changeDetectors]
 
       self.logger.info('starting detectors')
       for future in as_completed(futures):
@@ -22,7 +22,7 @@ class ChangeDetect:
         diffAreas = diffResp['diffAreas']
 
         if len(diffAreas) > 0:
-          nextImg['detections'].append({'diffAreas': diffAreas, 'name': diffResp['name']})
+          nextEvent['detections'].append({'diffAreas': diffAreas, 'name': diffResp['name']})
 
       self.logger.info('detectors completed')
   # end def

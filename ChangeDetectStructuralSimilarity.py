@@ -17,9 +17,11 @@ class ChangeDetectStructuralSimilarity:
       self.logger = Logger('StructuralSimilarityChangeDetect')
   # end def
 
-  def process(self, prevImg, nextImg):
+  def process(self, prevEvent, nextEvent):
     self.logger.info('structural similarity change detection')
     diffAreas = {}
+    prevImg = prevEvent['img']
+    nextImg = nextEvent['img']
 
   # Convert images to grayscale
     #cv2.imwrite('before.jpg', before)

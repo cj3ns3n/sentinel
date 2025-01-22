@@ -3,7 +3,7 @@ from logger import Logger
 
 
 class ChangeDetectYolo:
-  def __init__(self, modelName='yolo11s.pt', confidenceThreshold=0.3, color=(51,153,255), logger=None):
+  def __init__(self, modelName='yolo11s.pt', ignores=[], confidenceThreshold=0.3, areaDiffThreshold=5, logger=None):
     if logger:
       self.logger = logger
     else:
@@ -13,11 +13,14 @@ class ChangeDetectYolo:
     self.logger.info('yolo model: "%s"' % modelName)
     self.model = YOLO(modelName)
     self.confidenceThreshold = confidenceThreshold
-    self.color = color
+    self.areaDiffThreshold = areaDiffThreshold
+    self.ignores = ignores
   # end def
 
-  def process(self, prevImg, nextImg):
+  def process(self, prevEvent, nextEvent):
     self.logger.info('yolo "%s" change detection' % self.name)
+    nextImg = nextEvent['img']
+
     modelResp = self.model(nextImg)
     detections = modelResp[0]
     diffAreas = {}
@@ -41,6 +44,20 @@ class ChangeDetectYolo:
 
     return {'diffAreas': diffAreas, 'name': self.name}
   # end def
+
+  def findAOIs(self, prevAreas, nextAreas):
+    aois = {}
+
+    for name, nextArea in nextAreas.items():
+      if name not in self.ignores:
+        if name in prevAreas:
+          prevArea = prevAreas[name]
+          if abs(prevArea[0] - nextArea[0]) > self.areaDiffThreshold:
+            aois[name] = nextArea
+        else:
+          aois[name] = nextArea
+      # end if
+    # end for
 # end class
 
 if __name__ == '__main__':
