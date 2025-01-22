@@ -1,4 +1,5 @@
 from ultralytics import YOLO
+import numpy as np
 from logger import Logger
 
 
@@ -25,10 +26,11 @@ class ChangeDetectYolo:
     detections = modelResp[0]
     diffAreas = {}
 
+    self.logger.info('00')
     for data in detections.boxes.data.tolist():
       # extract the confidence (i.e., probability) associated with the detection
-      print(data)
       confidence = float(data[4])
+      self.logger.info('\tconfidence: ' + repr(confidence))
 
       # filter out weak detections by ensuring the
       # confidence is greater than the minimum confidence
@@ -42,7 +44,12 @@ class ChangeDetectYolo:
         #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
     # end for
 
-    return {'diffAreas': diffAreas, 'name': self.name}
+    if 'diffAreas' in prevEvent:
+      self.logger.info('aoi diff')
+      return {'diffAreas': self.findAOIs(prevEvent['diffAreas'], diffAreas), 'name': self.name}
+    else:
+      self.logger.info('single aoi')
+      return {'diffAreas': diffAreas, 'name': self.name}
   # end def
 
   def findAOIs(self, prevAreas, nextAreas):
@@ -52,12 +59,22 @@ class ChangeDetectYolo:
       if name not in self.ignores:
         if name in prevAreas:
           prevArea = prevAreas[name]
-          if abs(prevArea[0] - nextArea[0]) > self.areaDiffThreshold:
+          dist = np.linalg.norm(np.array((prevArea[0], prevArea[1])) - np.array(nextArea[0], nextArea[1]))
+          self.logger.info('dist 01 %f' % dist)
+          if dist > self.areaDiffThreshold:
             aois[name] = nextArea
+          else:
+            dist = np.linalg.norm(np.array((prevArea[2], prevArea[3])) - np.array(nextArea[2], nextArea[3]))
+            self.logger.info('dist 02 %f' % dist)
+            if dist > self.areaDiffThreshold:
+              aois[name] = nextArea
         else:
           aois[name] = nextArea
       # end if
     # end for
+
+    return aois
+  # end def
 # end class
 
 if __name__ == '__main__':
