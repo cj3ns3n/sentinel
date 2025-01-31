@@ -34,16 +34,16 @@ def getConfiguration(args):
 def loadDetectors(detectorConfigs):
   detectors = []
   for detector in config['detectors']:
+    detectorLogger = Logger(detector['name'])
     detectorModule = import_module(detector['name'])
     initStr = 'detectorModule.%s(' % detector['name']
     for key, value in detector.items():
       if key != 'name':
         initStr += key + '=' + str(value) + ','
     # end for
-    if len(detector) > 1:
-      initStr = initStr[:-1]
-    initStr += ')'
+    initStr += 'logger=detectorLogger)'
 
+    print(initStr)
     detectors.append(eval(initStr))
 
   return detectors
@@ -69,13 +69,13 @@ if __name__ == '__main__':
   if 'login' in config.keys():
     credentials = config
 
-  imgProducer = ImageProducer(config['url'], credentials = credentials, frequency = config['frequency'], logger = Logger('ImageProducer', config['zone']))
+  imgProducer = ImageProducer(config['url'], credentials = credentials, frequency = config['frequency'], logger=Logger('ImageProducer', config['zone']))
   uploader = None
   if not config['localStorageOnly']:
     from storageGCS import SurveilUploader
     uploader = SurveilUploader('surveil', config['zone'], Logger('SurveilUploader'), config['zone'])
   storageObserver = StorageObserver(zone=config['zone'], remoteUploader=uploader, logger=Logger('StorageObserver', config['zone']))
 
-  surveillance = Surveillance(imgProducer, storageObserver, detectors, logger = Logger('Surveillance', config['zone']))
+  surveillance = Surveillance(imgProducer, storageObserver, detectors, logger=Logger('Surveillance', config['zone']))
   surveillance.execute()
 # end if
