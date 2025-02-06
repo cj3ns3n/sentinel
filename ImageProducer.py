@@ -16,6 +16,7 @@ class ImageProducer:
     self.frequency = frequency
     self.maxCount = count
     self.setActiveState()
+    self.cam = None
 
     if logger:
       self.logger = logger
@@ -43,9 +44,20 @@ class ImageProducer:
     return np.zeros((256, 256, 3), np.uint8)
   # end def
 
+  def getCam(self):
+    if self.cam is None or not self.cam.isOpened():
+      self.cam = cv2.VideoCapture(0)
+    return self.cam
+  # end def
+
+  def releaseCam(self):
+    if self.cam is not None:
+      self.cam.release()
+  # end def
+
   def captureLocal(self):
-    capture = cv2.VideoCapture(0)
-    (ret, frame) = capture.read()
+    cam = self.getCam()
+    (ret, frame) = cam.read()
 
     if ret:
       #self.logInfo('dimensions' + repr(frame.shape[:2]))
@@ -101,6 +113,7 @@ class ImageProducer:
 
         if sleepTime > 0:
           self.logInfo('sleeping %f sec' % (sleepTime))
+          self.releaseCam()
           time.sleep(sleepTime)
       # end if
     #end while
