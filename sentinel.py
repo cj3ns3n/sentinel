@@ -3,6 +3,7 @@ from StorageObserver import StorageObserver
 from Surveillance import Surveillance
 from logger import Logger
 from importlib import import_module
+from terminal_display import TerminalDisplay
 import json
 import argparse
 
@@ -31,10 +32,10 @@ def getConfiguration(args):
   return config
 # end def
 
-def loadDetectors(detectorConfigs):
+def loadDetectors(detectorConfigs, display):
   detectors = []
   for detector in config['detectors']:
-    detectorLogger = Logger(detector['name'])
+    detectorLogger = Logger(detector['name'], display=display)
     detectorModule = import_module(detector['name'])
     initStr = 'detectorModule.%s(' % detector['name']
     for key, value in detector.items():
@@ -59,23 +60,26 @@ if __name__ == '__main__':
   parser.add_argument('-f', '--frequency', type=int, default=120, help='The number of seconds between capturing images')
   parser.add_argument('--config-file', help="file containing configuration values")
 
+  display = TerminalDisplay()
+  display.start()
+
   config = getConfiguration(parser.parse_args())
-  logger = Logger('main', config['zone'])
+  logger = Logger('main', display, config['zone'])
   logger.info(repr(config))
 
-  detectors = loadDetectors(config['detectors'])
+  detectors = loadDetectors(config['detectors'], display)
 
   credentials = None
   if 'login' in config.keys():
     credentials = config
 
-  imgProducer = ImageProducer(config['url'], credentials = credentials, frequency = config['frequency'], logger=Logger('ImageProducer', config['zone']))
+  imgProducer = ImageProducer(config['url'], credentials=credentials, frequency=config['frequency'], logger=Logger('ImageProducer', display, config['zone']))
   uploader = None
   if not config['localStorageOnly']:
     from storageGCS import SurveilUploader
-    uploader = SurveilUploader('surveil', config['zone'], Logger('SurveilUploader'), config['zone'])
-  storageObserver = StorageObserver(zone=config['zone'], remoteUploader=uploader, logger=Logger('StorageObserver', config['zone']))
+    uploader = SurveilUploader('surveil', config['zone'], Logger('SurveilUploader', display), config['zone'])
+  storageObserver = StorageObserver(zone=config['zone'], remoteUploader=uploader, logger=Logger('StorageObserver', display, config['zone']))
 
-  surveillance = Surveillance(imgProducer, storageObserver, detectors, logger=Logger('Surveillance', config['zone']))
+  surveillance = Surveillance(imgProducer, storageObserver, detectors, logger=Logger('Surveillance', display, config['zone']))
   surveillance.execute()
 # end if
