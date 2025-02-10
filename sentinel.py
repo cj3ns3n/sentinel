@@ -4,6 +4,8 @@ from Surveillance import Surveillance
 from logger import Logger
 from importlib import import_module
 from terminal_display import TerminalDisplay
+import time
+import threading
 import json
 import argparse
 
@@ -57,13 +59,18 @@ if __name__ == '__main__':
   parser.add_argument('--cleanup', action='store_true', help='remove uploaded image file')
   parser.add_argument('--local-storage-only', action='store_true', help='only store files to local file system')
   parser.add_argument('--logfile', help='The file to store logs.  Defaults to stdout')
+  parser.add_argument('--display', default='curses', help='log display mode, curses or stdout')
   parser.add_argument('-f', '--frequency', type=int, default=120, help='The number of seconds between capturing images')
   parser.add_argument('--config-file', help="file containing configuration values")
 
-  display = TerminalDisplay()
-  display.start()
+  args = parser.parse_args()
+  config = getConfiguration(args)
 
-  config = getConfiguration(parser.parse_args())
+  display = None
+  if args.display == 'curses':
+    display = TerminalDisplay()
+    display.run()
+
   logger = Logger('main', display, config['zone'])
   logger.info(repr(config))
 
@@ -81,5 +88,14 @@ if __name__ == '__main__':
   storageObserver = StorageObserver(zone=config['zone'], remoteUploader=uploader, logger=Logger('StorageObserver', display, config['zone']))
 
   surveillance = Surveillance(imgProducer, storageObserver, detectors, logger=Logger('Surveillance', display, config['zone']))
-  surveillance.execute()
+  surveillanceThread = threading.Thread(target=surveillance.execute)
+  surveillanceThread.daemon = True
+  surveillanceThread.start()
+
+  if args.display == 'curses':
+    while surveillanceThread.is_alive():
+      display.run()
+      time.sleep(0.01)
+
+  surveillanceThread.join()
 # end if
