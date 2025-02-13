@@ -26,7 +26,6 @@ class ChangeDetectYolo:
     detections = modelResp[0]
     diffAreas = {}
 
-    self.logger.info('00')
     for data in detections.boxes.data.tolist():
       # extract the confidence (i.e., probability) associated with the detection
       confidence = float(data[4])
@@ -45,10 +44,8 @@ class ChangeDetectYolo:
     # end for
 
     if 'diffAreas' in prevEvent:
-      self.logger.info('aoi diff')
       return {'diffAreas': self.findAOIs(prevEvent['diffAreas'], diffAreas), 'name': self.name}
     else:
-      self.logger.info('single aoi')
       return {'diffAreas': diffAreas, 'name': self.name}
   # end def
 
