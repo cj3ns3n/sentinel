@@ -6,7 +6,6 @@ import numpy as np
 import utils
 import threading
 import psutil
-from logger import Logger
 
 
 class ImageProducer:
@@ -24,16 +23,21 @@ class ImageProducer:
       self.logger = Logger('ImageProducer')
 
     if imageUrl:
-      self.getImage = self.captureWeb
+      if imageUrl.startswith('http'):
+        self.getImage = self.captureWeb
 
-      self.req = urllib.request.Request(self.imageUrl)
-      if self.credentials:
-        encodedCredentials = ('%s:%s' % (self.credentials['login'], self.credentials['password']))
-        encodedCredentials = base64.b64encode(encodedCredentials.encode('ascii'))
-        self.req.add_header('Authorization', 'Basic %s' % encodedCredentials.decode("ascii"))
-      #end if
+        self.req = urllib.request.Request(self.imageUrl)
+        if self.credentials:
+          encodedCredentials = ('%s:%s' % (self.credentials['login'], self.credentials['password']))
+          encodedCredentials = base64.b64encode(encodedCredentials.encode('ascii'))
+          self.req.add_header('Authorization', 'Basic %s' % encodedCredentials.decode("ascii"))
+        #end if
+      else:
+        self.getCam = self.getRtspCam
+        self.getImage = self.captureCam
     else:
-      self.getImage = self.captureLocal
+      self.getCam = self.getLocalCam
+      self.getImage = self.captureCam
     # end if
 
     # testing
@@ -44,7 +48,13 @@ class ImageProducer:
     return np.zeros((256, 256, 3), np.uint8)
   # end def
 
-  def getCam(self):
+  def getRtspCam(self):
+    if self.cam is None or not self.cam.isOpened():
+      self.cam = cv2.VideoCapture(self.imageUrl)
+    return self.cam
+  # end def
+
+  def getLocalCam(self):
     if self.cam is None or not self.cam.isOpened():
       self.cam = cv2.VideoCapture(0)
     return self.cam
@@ -55,7 +65,7 @@ class ImageProducer:
       self.cam.release()
   # end def
 
-  def captureLocal(self):
+  def captureCam(self):
     cam = self.getCam()
     (ret, frame) = cam.read()
 
@@ -89,7 +99,7 @@ class ImageProducer:
     while True:
       if self.shouldGetImage():
         try:
-          self.logInfo("acquiring image")
+          self.logInfo("acquiring image; state: %d" % (time.time() <= self.nextSleepTime))
           img = self.getImage()
           self.logInfo('acquired image (duration: %f) %s' % (time.time() - startTime, utils.getTimestampId()))
           self.onNextImage({'img': img, 'acquireTimestamp': utils.getTimestampId()}, queue)
@@ -104,7 +114,6 @@ class ImageProducer:
         #end try
       # end if
 
-      #self.logInfo("------------ITS ABOUT TIME-----------")
       if time.time() > self.nextSleepTime:
         sleepTime = self.sleepUntilTime - time.time()
         self.sleepUntilTime += self.frequency
@@ -123,7 +132,7 @@ class ImageProducer:
   # end def
 
   def setActiveState(self):
-    self.nextSleepTime = time.time() +  self.frequency
+    self.nextSleepTime = time.time() + self.frequency
     self.sleepUntilTime = self.nextSleepTime + self.frequency
   # end def
 
