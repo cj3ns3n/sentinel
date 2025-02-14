@@ -59,7 +59,7 @@ if __name__ == '__main__':
   parser.add_argument('--cleanup', action='store_true', help='remove uploaded image file')
   parser.add_argument('--local-storage-only', action='store_true', help='only store files to local file system')
   parser.add_argument('--logfile', help='The file to store logs.  Defaults to stdout')
-  parser.add_argument('--display', default='curses', help='log display mode, curses or stdout')
+  parser.add_argument('--display', default='stdout', help='log display mode, curses or stdout')
   parser.add_argument('-f', '--frequency', type=int, default=120, help='The number of seconds between capturing images')
   parser.add_argument('--config-file', help="file containing configuration values")
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
   if args.display == 'curses':
     while surveillanceThread.is_alive():
       display.run()
-      time.sleep(0.01)
+      time.sleep(0.005)
 
   surveillanceThread.join()
 # end if
