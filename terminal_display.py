@@ -4,22 +4,19 @@ import psutil
 import time
 import traceback
 from threading import Lock
+from datetime import datetime
 
 
 class TerminalDisplay:
   SPINNER = ['|', '/', '-', '\\']
+
   def __init__(self, detectors=[]):
     self.scr = curses.initscr()
     self.size = self.scr.getmaxyx()
-    self.message_start_line = 10
+    self.message_start_line = 5
     self.message_last_line = self.size[0] - 4
     self.message_lines = self.message_last_line - self.message_start_line
     self.spinner_idx = 0
-
-    self.infoQueue = queue.Queue(10)
-    self.warnQueue = queue.Queue(10)
-    self.errQueue = queue.Queue(10)
-    self.detectorQueues = []
 
     curses.noecho()
     curses.cbreak()
@@ -32,24 +29,19 @@ class TerminalDisplay:
   # end def
 
   def add_message(self, message):
-    self.terminal_lock.acquire()
-    try:
-      if len(message) < self.size[1]:
-        message = message + ' ' * (self.size[1] - len(message))
-      else:
-        message = message[:self.size[1]-1]
+    if len(message) < self.size[1]:
+      message = message + ' ' * (self.size[1] - len(message))
+    else:
+      message = message[:self.size[1]-1]
 
-      self.messages.append(message)
-      if len(self.messages) > self.message_lines:
-        self.messages = self.messages[-self.message_lines:]
-    finally:
-      self.terminal_lock.release()
+    self.messages.append(message)
+
+    if len(self.messages) > self.message_lines:
+      self.messages = self.messages[-self.message_lines:]
   # end def
 
   def run(self):
     try:
-      self.processQueues()
-
       sys_mem = psutil.virtual_memory()
       avail_mem = sys_mem.available / (1000 * 1000)
       pct_mem_used = sys_mem.percent
@@ -74,22 +66,15 @@ class TerminalDisplay:
       (mem_phys, mem_vms, read_mb, write_mb, num_threads, open_files, connections)
       self.scr.addstr(0, 0, sys_line1)
       self.scr.addstr(1, 0, sys_line2)
-      #self.scr.addstr(1, 0, "Screen size: %s" % repr(self.size))
-      self.scr.addstr(2, 0, "info queue size: %d" % self.infoQueue.qsize())
-      self.scr.addstr(3, 0, "warn queue size: %d" % self.warnQueue.qsize())
-      self.scr.addstr(4, 0, "err queue size: %d" % self.errQueue.qsize())
-      self.scr.addstr(5, 0, "msg queue size: %d" % len(self.messages))
+      messages_copy = self.messages.copy()
 
-      self.terminal_lock.acquire()
-      try:
-        for msg_idx in range(len(self.messages)):
-          self.scr.addstr(self.message_start_line + msg_idx, 0, self.messages[msg_idx])
-      finally:
-        self.terminal_lock.release()
+      for msg_idx in range(len(messages_copy)):
+        self.scr.addstr(self.message_start_line + msg_idx, 0, messages_copy[msg_idx])
+
     except Exception as e:
       traceback.print_exc()
 
-    self.scr.addstr(self.size[0]-1, 0, TerminalDisplay.SPINNER[self.spinner_idx])
+    self.scr.addstr(self.size[0]-1, 0, TerminalDisplay.SPINNER[self.spinner_idx] + ' ' + str(datetime.now().time()))
     self.spinner_idx = (self.spinner_idx + 1) % len(TerminalDisplay.SPINNER)
 
     self.scr.refresh()
@@ -120,6 +105,7 @@ class TerminalDisplay:
     curses.endwin()
   # end def
 # end class
+
 
 if __name__ == "__main__":
   terminal = TerminalDisplay()
