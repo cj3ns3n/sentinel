@@ -19,7 +19,7 @@ def annotateImage(imgContext):
     color = CONTOUR_COLORS[sum(str.encode(detectorName)) % len(CONTOUR_COLORS)]
     for id, area in areas.items():
       cv2.rectangle(image, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
-      addText(image, id, (int(area[0]), int(area[1])), color=color)
+      addText(image, id, (int(area[0]+2), int(area[1]+20)), color=color)
 
   imgId = imgContext['acquireTimestamp']
   if image.shape[0] > 1000:
