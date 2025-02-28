@@ -25,7 +25,7 @@ class Surveillance:
     self.state = 'init'
   # end def
 
-  def execute(self):
+  def execute(self, durationSec=0):
     imgProducer = threading.Thread(target=self.imageProducer.produce, args=(self.imageBuffer,))
     imgProducer.daemon = True
     imgProducer.start()
@@ -34,7 +34,8 @@ class Surveillance:
     storageObserver.daemon = True
     storageObserver.start()
 
-    while True:
+    start = time()
+    while not self.done(start, durationSec):
       img = self.imageBuffer.get()
       self.imageBuffer.task_done()
 
@@ -50,7 +51,19 @@ class Surveillance:
       # end if
 
       self.prevImg = img
+      if 'detections' in self.prevImg:
+        self.logger.info('detections: ' + str(len(self.prevImg['detections'])))
+        for detection in self.prevImg['detections']:
+          self.logger.info('name: ' + detection['name'])
     # end while
+  # end def
+
+  def done(self, start, duration):
+    done = False
+    if duration > 0:
+      done = time() - start > duration
+
+    return done
   # end def
 
   def diffImages(self, accumList):
