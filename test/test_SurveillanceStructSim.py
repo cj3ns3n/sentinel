@@ -6,7 +6,7 @@ import cv2
 import utils
 from Surveillance import Surveillance
 from StorageObserver import StorageObserver
-from ChangeDetectYolo import ChangeDetectYolo
+from ChangeDetectStructuralSimilarity import ChangeDetectStructuralSimilarity
 
 
 class ImageProducer:
@@ -33,7 +33,7 @@ class ImageProducer:
 
 
 class TestSurveillance(unittest.TestCase):
-  def test_diff(self):
+  def test_struct_sim(self):
     imgs = [os.path.join('test', 'night_00.jpg'),
             os.path.join('test', 'night_01.jpg'),
             os.path.join('test', 'night_02.jpg'),
@@ -49,9 +49,9 @@ class TestSurveillance(unittest.TestCase):
 
     imgProducer = ImageProducer(imgs, logger=logger)
     storageObserver = StorageObserver('test_results', logger=logger)
-    yoloDetector = ChangeDetectYolo(modelName='yolo11x.pt')
+    structSimDetector = ChangeDetectStructuralSimilarity()
 
-    surveillance = Surveillance(imgProducer, storageObserver, [yoloDetector], logger=logger)
+    surveillance = Surveillance(imgProducer, storageObserver, [structSimDetector], logger=logger)
     surveillance.execute(0)
   # end def
 # end class
