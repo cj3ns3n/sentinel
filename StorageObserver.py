@@ -22,7 +22,7 @@ class StorageObserver:
     # end def
 
     def storeImage(self, imageContext):
-        imgId = imageContext['acquireTimestamp']
+        imgId = imageContext.acquireTimestamp
 
         self.logInfo('storing image %s' % (imgId))
 
@@ -30,7 +30,7 @@ class StorageObserver:
         if self.zone:
             fileName = os.path.join(self.zone, fileName)
 
-        self.saveImageFs(fileName, imageContext['annotatedImage'])
+        self.saveImageFs(fileName, imageContext.annotatedImage)
 
         if self.remoteUploader:
             try:

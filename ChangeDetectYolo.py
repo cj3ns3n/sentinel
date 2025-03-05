@@ -23,7 +23,7 @@ class ChangeDetectYolo:
   def process(self, prevEvent, nextEvent):
     startTime = time()
     self.logger.info('yolo "%s" change detection' % self.name)
-    nextImg = nextEvent['img']
+    nextImg = nextEvent.originalImage
     #nextImg = cv2.fastNlMeansDenoisingColored(nextImg, None, 10, 10, 7, 21)
     self.logger.info('denoise time %f' % (time() - startTime))
 
@@ -48,11 +48,10 @@ class ChangeDetectYolo:
         #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
     # end for
 
-    self.logger.info('prev keys %s' % repr(prevEvent.keys()))
     prevAois = {}
-    if 'detections' in prevEvent:
+    if prevEvent.detections:
       self.logger.info('detections: ' + str(len(detections)))
-      for detection in prevEvent['detections']:
+      for detection in prevEvent.detections:
         self.logger.info('detection name: ' + detection['name'])
         if detection['name'] == self.name:
           prevAois = detection['diffAreas']

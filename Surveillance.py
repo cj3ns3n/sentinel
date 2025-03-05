@@ -5,6 +5,7 @@ import queue
 import threading
 from ChangeDetect import ChangeDetect
 from time import time
+from imageContext import ImageContext
 
 
 class Surveillance:
@@ -36,24 +37,24 @@ class Surveillance:
 
     start = time()
     while not self.done(start, durationSec):
-      img = self.imageBuffer.get()
+      imgContext = self.imageBuffer.get()
       self.imageBuffer.task_done()
 
-      if img == None:
+      if imgContext == None:
         self.logger.error('NONE IMAGE!!!!!')
 
       if self.prevImg:
-        imgPair = [self.prevImg, img]
+        imgPair = [self.prevImg, imgContext]
         changeProduct = self.diffImages(imgPair)
-        if len(changeProduct['detections']) > 0:
-          changeProduct['annotatedImage'] = utils.annotateImage(changeProduct)
+        if len(changeProduct.detections) > 0:
+          changeProduct.annotatedImage = utils.annotateImage(changeProduct)
           self.storeImage(changeProduct)
       # end if
 
-      self.prevImg = img
-      if 'detections' in self.prevImg:
-        self.logger.info('detections: ' + str(len(self.prevImg['detections'])))
-        for detection in self.prevImg['detections']:
+      self.prevImg = imgContext
+      if self.prevImg.detections:
+        self.logger.info('detections: ' + str(len(self.prevImg.detections)))
+        for detection in self.prevImg.detections:
           self.logger.info('name: ' + detection['name'])
     # end while
   # end def
@@ -74,10 +75,10 @@ class Surveillance:
       prevEvent = accumList[0]
       nextEvent = accumList[1]
 
-      nextEvent['processTimestamp'] = utils.getTimestampId()
+      nextEvent.processTimestamp = utils.getTimestampId()
       self.changeDetector.process(prevEvent, nextEvent)
 
-      nextEvent['processDuration'] = time() - startTime
+      nextEvent.processDuration = time() - startTime
 
       return nextEvent
     except Exception as ex:
@@ -86,7 +87,9 @@ class Surveillance:
       self.logErrorMessage('failure during change detection')
     # end try
 
-    return {'changeImage': None, 'processDuration': time() - startTime}
+    errImageContext = ImageContext(None)
+    errImageContext.processDuration = time() - startTime
+    return errImageContext
   # end def
 
   def storeImage(self, imgProduct):

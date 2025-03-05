@@ -7,7 +7,7 @@ import utils
 from Surveillance import Surveillance
 from StorageObserver import StorageObserver
 from ChangeDetectYolo import ChangeDetectYolo
-
+from imageContext import ImageContext
 
 class ImageProducer:
   def __init__(self, images, frequency=0.01, logger=None):
@@ -19,7 +19,9 @@ class ImageProducer:
   def produce(self, queue):
     for imgPath in self.images:
       img = cv2.imread(imgPath, cv2.IMREAD_COLOR)
-      imgData = {'buffer-size': queue.qsize(), 'img': img, 'acquireTimestamp': utils.getTimestampId()}
+      imgData = ImageContext(img)
+      imgData.bufferSize = queue.qsize()
+      imgData.acquireTimestamp = utils.getTimestampId()
       self.logger.info('produce: %s' % imgPath)
       queue.put(imgData)
       time.sleep(self.frequency)

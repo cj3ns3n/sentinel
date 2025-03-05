@@ -11,8 +11,6 @@ class ChangeDetect:
   # end def
 
   def process(self, prevEvent, nextEvent):
-    nextEvent['detections'] = []
-
     with ThreadPoolExecutor() as executor:
       futures = [executor.submit(detector.process, prevEvent, nextEvent) for detector in self.changeDetectors]
 
@@ -22,9 +20,10 @@ class ChangeDetect:
         diffAreas = diffResp['diffAreas']
 
         if len(diffAreas) > 0:
-          nextEvent['detections'].append({'diffAreas': diffAreas, 'name': diffResp['name']})
+          nextEvent.detections.append({'diffAreas': diffAreas, 'name': diffResp['name']})
           self.activeStateCallback()
 
       self.logger.info('detectors completed')
+    # end with
   # end def
 # end class

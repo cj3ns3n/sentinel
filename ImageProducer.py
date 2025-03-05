@@ -6,6 +6,7 @@ import numpy as np
 import utils
 import threading
 import psutil
+from imageContext import ImageContext
 
 
 class ImageProducer:
@@ -102,7 +103,9 @@ class ImageProducer:
           self.logInfo("acquiring image; state: %d" % (time.time() <= self.nextSleepTime))
           img = self.getImage()
           self.logInfo('acquired image (duration: %f) %s' % (time.time() - startTime, utils.getTimestampId()))
-          self.onNextImage({'img': img, 'acquireTimestamp': utils.getTimestampId()}, queue)
+          imgContext = ImageContext(img)
+          imgContext.acquireTimestamp = utils.getTimestampId()
+          self.onNextImage(imgContext, queue)
         except urllib.error.URLError as err:
           self.logErr("url error getting web cam image: " + repr(err))
           self.logInfo("url: %s" % (self.imageUrl))
@@ -136,10 +139,10 @@ class ImageProducer:
     self.sleepUntilTime = self.nextSleepTime + self.frequency
   # end def
 
-  def onNextImage(self, imgData, imageBuffer):
+  def onNextImage(self, imgContext, imageBuffer):
     if not imageBuffer.full():
-      imgData['buffer-size'] = imageBuffer.qsize()
-      imageBuffer.put(imgData)
+      imgContext.bufferSize = imageBuffer.qsize()
+      imageBuffer.put(imgContext)
       self.logInfo('image added to queue (buffer size: %d)' % imageBuffer.qsize())
     else:
       self.logInfo('queue full; image not added (buffer size: %d)' % imageBuffer.qsize())
@@ -161,25 +164,26 @@ if __name__ == '__main__':
   import queue
   from logger import Logger
 
-  logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s - %(name)s', level=logging.INFO)
+  #logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s - %(name)s', level=logging.INFO)
   logger = Logger('main')
 
   imageBuffer = queue.Queue(5)
 
-  producer = ImageProducer(sys.argv[1], logger=logger)
+  producer = ImageProducer("http://192.168.1.30/cgi-bin/api.cgi?cmd=Snap&channel=0&rs=frontCam&user=admin&password=11219141", logger=logger)
   imgProducerThread = threading.Thread(target=producer.produce, args=(imageBuffer,))
   imgProducerThread.daemon = True
   imgProducerThread.start()
 
   #cv2.imwrite(sys.argv[2], producer.getImage())
   count = 0
-  while True:
+  while count < 10:
     logger.info('00; %s: count: %03d; qsize: %d' % (utils.getTimestampId(), count, imageBuffer.qsize()))
     img = imageBuffer.get()
     imageBuffer.task_done()
     #logger.error('%s: current' % (img['acquireTimestamp']))
-    logger.info('acquired time: %s; qsize: %d' % (img['acquireTimestamp'], img['buffer-size']))
+    logger.info('acquired time: %s; qsize: %d' % (img.acquireTimestamp, img.bufferSize))
     logger.info('01: %s: count: %03d; qsize: %d' % (utils.getTimestampId(), count, imageBuffer.qsize()))
+    cv2.imwrite('%02d.jpg' % count, img['img'])
     count += 1
     time.sleep(6)
     producer.setActiveState()
