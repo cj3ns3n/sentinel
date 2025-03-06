@@ -1,6 +1,8 @@
 from skimage.metrics import structural_similarity
 import cv2
 from logger import Logger
+from areaofinterest import AreaOfInterest
+
 
 class ChangeDetectStructuralSimilarity:
   def __init__(self, minContourArea=400, minDiffScore=100, color=(36, 255, 12), logger=None):
@@ -58,7 +60,8 @@ class ChangeDetectStructuralSimilarity:
         area = cv2.contourArea(c)
         if area >= self.minContourArea:
           x, y, w, h = cv2.boundingRect(c)
-          diffAreas[str(count)] = (x, y, x+w, y+h)
+          name = str(count)
+          diffAreas[name] = AreaOfInterest(name, (x, y, x + w, y + h))
           count += 1
     # end if
 

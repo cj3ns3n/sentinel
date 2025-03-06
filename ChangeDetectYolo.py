@@ -3,6 +3,7 @@ import numpy as np
 from time import time
 import cv2
 from logger import Logger
+from areaofinterest import AreaOfInterest
 
 
 class ChangeDetectYolo:
@@ -18,6 +19,8 @@ class ChangeDetectYolo:
     self.confidenceThreshold = confidenceThreshold
     self.areaDiffThreshold = areaDiffThreshold
     self.ignores = ignores
+    self.avgCenters = {}
+    self.avgWindowSize = 10
   # end def
 
   def process(self, prevEvent, nextEvent):
@@ -42,16 +45,16 @@ class ChangeDetectYolo:
         id = int(data[5])
         name = '%03d_%s' % (id, detections.names[id])
         self.logger.info('detected: %s: %f' % (name, confidence))
-        diffAreas[name] = (data[:4])
+        diffAreas[name] = AreaOfInterest(name, data[:4])
         # if the confidence is greater than the minimum confidence,
         # draw the bounding box on the frame
         #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
     # end for
 
     prevAois = {}
-    if prevEvent.detections:
+    if prevEvent.detectors:
       self.logger.info('detections: ' + str(len(detections)))
-      for detection in prevEvent.detections:
+      for detection in prevEvent.detectors:
         self.logger.info('detection name: ' + detection['name'])
         if detection['name'] == self.name:
           prevAois = detection['diffAreas']
@@ -70,6 +73,7 @@ class ChangeDetectYolo:
     aois = {}
 
     for name, nextArea in nextAreas.items():
+      aoi = AreaOfInterest(name, nextArea)
       if name not in self.ignores:
         self.logger.info('curr name (%s) prev names (%s)' % (name, repr(prevAreas.keys())))
         if name in prevAreas:
@@ -77,20 +81,45 @@ class ChangeDetectYolo:
           dist = np.linalg.norm(np.array((prevArea[0], prevArea[1])) - np.array((nextArea[0], nextArea[1])))
           self.logger.info('dist 01 %f (%f)' % (dist, self.areaDiffThreshold))
           if dist > self.areaDiffThreshold:
-            aois[name] = nextArea
+            aois[name] = aoi
           else:
             dist = np.linalg.norm(np.array((prevArea[2], prevArea[3])) - np.array((nextArea[2], nextArea[3])))
             self.logger.info('dist 02 %f (%f)' % (dist, self.areaDiffThreshold))
             if dist > self.areaDiffThreshold:
-              aois[name] = nextArea
+              aois[name] = aoi
         else:
           self.logger.info('ADDING curr name (%s) prev names (%s)' % (name, repr(prevAreas.keys())))
-          aois[name] = nextArea
+          aois[name] = aoi
+        # end if
+
+        center = None
+        if name in aois:
+          aoi = aois[name]
+          center = aoi.center()
+        self.addCenter(center, name)
       # end if
     # end for
 
     return aois
   # end def
+
+  def addCenter(self, center, name):
+    if center == None:
+      if name in self.avgCenters:
+        newAvgs = self.avgCenters[name][1:]
+        if len(newAvgs) == 0:
+          self.avgCenters.pop(name)
+        else:
+          self.avgCenters[name] = newAvgs
+    else:
+      if name in self.avgCenters:
+        self.avgCenters[name].append(center)
+      else:
+        self.avgCenters[name] = [center]
+
+      if len(self.avgCenters[name]) > self.avgWindowSize:
+        self.avgCenters[name] = self.avgCenters[name][1:]
+    # end if
 # end class
 
 if __name__ == '__main__':

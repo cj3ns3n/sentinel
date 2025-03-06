@@ -13,13 +13,17 @@ def getTimestampId():
 
 def annotateImage(imgContext):
   image = imgContext.originalImage.copy()
-  for detection in imgContext.detections:
-    detectorName = detection['name']
-    areas = detection['diffAreas']
+  for detector in imgContext.detectors:
+    detectorName = detector['name']
+    aois = detector['diffAreas']
     color = CONTOUR_COLORS[sum(str.encode(detectorName)) % len(CONTOUR_COLORS)]
-    for id, area in areas.items():
+    for aoiId, aoi in aois.items():
+      area = aoi.area
       cv2.rectangle(image, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
-      addText(image, id, (int(area[0]+2), int(area[1]+20)), color=color)
+      addText(image, aoiId, (int(area[0]+2), int(area[1]+20)), color=color)
+      center = aoi.center()
+      cv2.line(image, (int(center[0] - 6), int(center[1])), (int(center[0] + 6), int(center[1])), color, thickness=2)
+      cv2.line(image, (int(center[0]), int(center[1] - 6)), (int(center[0]), int(center[1] + 6)), color, thickness=2)
 
   imgId = imgContext.acquireTimestamp
   if image.shape[0] > 1000:

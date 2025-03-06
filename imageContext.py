@@ -3,7 +3,7 @@ class ImageContext:
     self.originalImage = originalImage
     self.acquireTimestamp = None
     self.annotatedImage = None
-    self.detections = []
+    self.detectors = []
     self.diffScore = None
     self.processTimestamp = None
     self.processDuration = None

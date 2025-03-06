@@ -46,16 +46,12 @@ class Surveillance:
       if self.prevImg:
         imgPair = [self.prevImg, imgContext]
         changeProduct = self.diffImages(imgPair)
-        if len(changeProduct.detections) > 0:
+        if len(changeProduct.detectors) > 0:
           changeProduct.annotatedImage = utils.annotateImage(changeProduct)
           self.storeImage(changeProduct)
       # end if
 
       self.prevImg = imgContext
-      if self.prevImg.detections:
-        self.logger.info('detections: ' + str(len(self.prevImg.detections)))
-        for detection in self.prevImg.detections:
-          self.logger.info('name: ' + detection['name'])
     # end while
   # end def
 

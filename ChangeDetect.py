@@ -20,7 +20,7 @@ class ChangeDetect:
         diffAreas = diffResp['diffAreas']
 
         if len(diffAreas) > 0:
-          nextEvent.detections.append({'diffAreas': diffAreas, 'name': diffResp['name']})
+          nextEvent.detectors.append({'diffAreas': diffAreas, 'name': diffResp['name']})
           self.activeStateCallback()
 
       self.logger.info('detectors completed')
