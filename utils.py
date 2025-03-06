@@ -25,6 +25,11 @@ def annotateImage(imgContext):
       cv2.rectangle(image, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
       addText(image, aoiId, (int(area[0]+2), int(area[1]+20)), color=color)
 
+      txtCount = 1
+      for txt in aoi.annotate_text:
+        pos = (int(area[0]+2), int(area[1]+(22 * (txtCount + 1))))
+        addText(image, txt, pos, color=color)
+
       for crossHairCenter in aoi.annotate_cross_hairs:
         crossHairLines = getCrossHairLines(crossHairCenter)
         cv2.line(image, crossHairLines[0][0], crossHairLines[0][1], color, thickness=2)

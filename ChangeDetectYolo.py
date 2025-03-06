@@ -76,11 +76,12 @@ class ChangeDetectYolo:
       nextArea = nextAOI.area
       if name not in self.ignores:
         self.logger.info('curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
-        nextCenter =  nextAOI.center()
+        nextCenter = nextAOI.center()
 
         if name in self.avgCenters:
           dist = np.linalg.norm(np.array(self.avgPoint(self.avgCenters[name])) - np.array(nextAOI.center()))
           self.logger.info('dist %f (threshold: %f)' % (dist, self.areaDiffThreshold))
+          nextAOI.annotate_text.append('dist: %0.1f' % dist)
           if dist > self.areaDiffThreshold:
             aois[name] = nextAOI
         else:
