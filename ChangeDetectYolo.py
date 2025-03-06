@@ -99,10 +99,22 @@ class ChangeDetectYolo:
           center = aoi.center()
           aoi.annotate_cross_hairs.append(center)
         self.addCenter(center, name)
+        if center:
+          aoi.annotate_circles.append(self.avgPoint(self.avgCenters[name]))
       # end if
     # end for
 
     return aois
+  # end def
+
+  def avgPoint(self, points):
+    xcoords = [point[0] for point in points]
+    ycoords = [point[1] for point in points]
+
+    xavg = sum(xcoords) / len(points)
+    yavg = sum(ycoords) / len(points)
+
+    return (xavg, yavg)
   # end def
 
   def addCenter(self, center, name):

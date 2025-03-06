@@ -24,10 +24,17 @@ def annotateImage(imgContext):
       area = aoi.area
       cv2.rectangle(image, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
       addText(image, aoiId, (int(area[0]+2), int(area[1]+20)), color=color)
+
       for crossHairCenter in aoi.annotate_cross_hairs:
         crossHairLines = getCrossHairLines(crossHairCenter)
         cv2.line(image, crossHairLines[0][0], crossHairLines[0][1], color, thickness=2)
         cv2.line(image, crossHairLines[1][0], crossHairLines[1][1], color, thickness=2)
+      # end for
+
+      for circleCenter in aoi.annotate_circles:
+        cv2.circle(image, (int(circleCenter[0]), int(circleCenter[1])), 4, color, -1)
+    # end for
+  # end for
 
   imgId = imgContext.acquireTimestamp
   if image.shape[0] > 1000:
