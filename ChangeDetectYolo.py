@@ -76,31 +76,20 @@ class ChangeDetectYolo:
       nextArea = nextAOI.area
       if name not in self.ignores:
         self.logger.info('curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
-        if name in prevAOIs:
-          prevAOI = prevAOIs[name]
-          prevArea = prevAOI.area
-          dist = np.linalg.norm(np.array((prevArea[0], prevArea[1])) - np.array((prevArea[0], prevArea[1])))
-          self.logger.info('dist 01 %f (%f)' % (dist, self.areaDiffThreshold))
+        nextCenter =  nextAOI.center()
+
+        if name in self.avgCenters:
+          dist = np.linalg.norm(np.array(self.avgPoint(self.avgCenters[name])) - np.array(nextAOI.center()))
+          self.logger.info('dist %f (threshold: %f)' % (dist, self.areaDiffThreshold))
           if dist > self.areaDiffThreshold:
             aois[name] = nextAOI
-          else:
-            dist = np.linalg.norm(np.array((prevArea[2], prevArea[3])) - np.array((nextArea[2], nextArea[3])))
-            self.logger.info('dist 02 %f (%f)' % (dist, self.areaDiffThreshold))
-            if dist > self.areaDiffThreshold:
-              aois[name] = nextAOI
         else:
-          self.logger.info('ADDING curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
+          self.logger.info('adding curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
           aois[name] = nextAOI
-        # end if
 
-        center = None
-        if name in aois:
-          aoi = aois[name]
-          center = aoi.center()
-          aoi.annotate_cross_hairs.append(center)
-        self.addCenter(center, name)
-        if center:
-          aoi.annotate_circles.append(self.avgPoint(self.avgCenters[name]))
+        self.addCenter(nextCenter, name)
+        nextAOI.annotate_cross_hairs.append(nextCenter)
+        nextAOI.annotate_circles.append(self.avgPoint(self.avgCenters[name]))
       # end if
     # end for
 
