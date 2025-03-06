@@ -7,7 +7,7 @@ from areaofinterest import AreaOfInterest
 
 
 class ChangeDetectYolo:
-  def __init__(self, modelName='yolo11s.pt', ignores=[], confidenceThreshold=0.3, areaDiffThreshold=5, logger=None):
+  def __init__(self, modelName='yolo11s.pt', ignores=[], confidenceThreshold=0.3, distThreshold=10, logger=None):
     if logger:
       self.logger = logger
     else:
@@ -17,7 +17,7 @@ class ChangeDetectYolo:
     self.logger.info('yolo model: "%s"' % modelName)
     self.model = YOLO(modelName)
     self.confidenceThreshold = confidenceThreshold
-    self.areaDiffThreshold = areaDiffThreshold
+    self.distThreshold = distThreshold
     self.ignores = ignores
     self.avgCenters = {}
     self.avgWindowSize = 10
@@ -80,9 +80,9 @@ class ChangeDetectYolo:
 
         if name in self.avgCenters:
           dist = np.linalg.norm(np.array(self.avgPoint(self.avgCenters[name])) - np.array(nextAOI.center()))
-          self.logger.info('dist %f (threshold: %f)' % (dist, self.areaDiffThreshold))
+          self.logger.info('dist %f (threshold: %f)' % (dist, self.distThreshold))
           nextAOI.annotate_text.append('dist: %0.1f' % dist)
-          if dist > self.areaDiffThreshold:
+          if dist > self.distThreshold:
             aois[name] = nextAOI
         else:
           self.logger.info('adding curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
