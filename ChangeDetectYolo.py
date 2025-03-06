@@ -28,7 +28,7 @@ class ChangeDetectYolo:
     self.logger.info('yolo "%s" change detection' % self.name)
     nextImg = nextEvent.originalImage
     #nextImg = cv2.fastNlMeansDenoisingColored(nextImg, None, 10, 10, 7, 21)
-    self.logger.info('denoise time %f' % (time() - startTime))
+    #self.logger.info('denoise time %f' % (time() - startTime))
 
     modelResp = self.model(nextImg)
     detections = modelResp[0]
@@ -69,33 +69,35 @@ class ChangeDetectYolo:
     self.logger.info('detect time %f' % (time() - startTime))
   # end def
 
-  def findAOIs(self, prevAreas, nextAreas):
+  def findAOIs(self, prevAOIs, nextAOIs):
     aois = {}
 
-    for name, nextArea in nextAreas.items():
-      aoi = AreaOfInterest(name, nextArea)
+    for name, nextAOI in nextAOIs.items():
+      nextArea = nextAOI.area
       if name not in self.ignores:
-        self.logger.info('curr name (%s) prev names (%s)' % (name, repr(prevAreas.keys())))
-        if name in prevAreas:
-          prevArea = prevAreas[name]
-          dist = np.linalg.norm(np.array((prevArea[0], prevArea[1])) - np.array((nextArea[0], nextArea[1])))
+        self.logger.info('curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
+        if name in prevAOIs:
+          prevAOI = prevAOIs[name]
+          prevArea = prevAOI.area
+          dist = np.linalg.norm(np.array((prevArea[0], prevArea[1])) - np.array((prevArea[0], prevArea[1])))
           self.logger.info('dist 01 %f (%f)' % (dist, self.areaDiffThreshold))
           if dist > self.areaDiffThreshold:
-            aois[name] = aoi
+            aois[name] = nextAOI
           else:
             dist = np.linalg.norm(np.array((prevArea[2], prevArea[3])) - np.array((nextArea[2], nextArea[3])))
             self.logger.info('dist 02 %f (%f)' % (dist, self.areaDiffThreshold))
             if dist > self.areaDiffThreshold:
-              aois[name] = aoi
+              aois[name] = nextAOI
         else:
-          self.logger.info('ADDING curr name (%s) prev names (%s)' % (name, repr(prevAreas.keys())))
-          aois[name] = aoi
+          self.logger.info('ADDING curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
+          aois[name] = nextAOI
         # end if
 
         center = None
         if name in aois:
           aoi = aois[name]
           center = aoi.center()
+          aoi.annotate_cross_hairs.append(center)
         self.addCenter(center, name)
       # end if
     # end for

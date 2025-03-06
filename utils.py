@@ -10,6 +10,9 @@ def addText(img, txt, position, color=(0, 0, 255)):
 def getTimestampId():
   return datetime.now().strftime('%Y-%m-%d:%H:%M:%S.%f')[:-3]
 
+def getCrossHairLines(center):
+  return (((int(center[0] - 6), int(center[1])), (int(center[0] + 6), int(center[1]))),
+           ((int(center[0]), int(center[1] - 6)), (int(center[0]), int(center[1] + 6))))
 
 def annotateImage(imgContext):
   image = imgContext.originalImage.copy()
@@ -21,9 +24,10 @@ def annotateImage(imgContext):
       area = aoi.area
       cv2.rectangle(image, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
       addText(image, aoiId, (int(area[0]+2), int(area[1]+20)), color=color)
-      center = aoi.center()
-      cv2.line(image, (int(center[0] - 6), int(center[1])), (int(center[0] + 6), int(center[1])), color, thickness=2)
-      cv2.line(image, (int(center[0]), int(center[1] - 6)), (int(center[0]), int(center[1] + 6)), color, thickness=2)
+      for crossHairCenter in aoi.annotate_cross_hairs:
+        crossHairLines = getCrossHairLines(crossHairCenter)
+        cv2.line(image, crossHairLines[0][0], crossHairLines[0][1], color, thickness=2)
+        cv2.line(image, crossHairLines[1][0], crossHairLines[1][1], color, thickness=2)
 
   imgId = imgContext.acquireTimestamp
   if image.shape[0] > 1000:
