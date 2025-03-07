@@ -51,31 +51,16 @@ class ChangeDetectYolo:
         #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
     # end for
 
-    prevAois = {}
-    if prevEvent.detectors:
-      self.logger.info('detections: ' + str(len(detections)))
-      for detection in prevEvent.detectors:
-        self.logger.info('detection name: ' + detection['name'])
-        if detection['name'] == self.name:
-          prevAois = detection['diffAreas']
-
-    if len(prevAois) > 0:
-      self.logger.info('ADDING ** prev aois **')
-      return {'diffAreas': self.findAOIs(prevAois, diffAreas), 'name': self.name}
-    else:
-      self.logger.info('ADDING ** no prev aois **')
-      return {'diffAreas': diffAreas, 'name': self.name}
-
     self.logger.info('detect time %f' % (time() - startTime))
+    return {'diffAreas': self.findAOIs(diffAreas), 'name': self.name}
   # end def
 
-  def findAOIs(self, prevAOIs, nextAOIs):
+  def findAOIs(self, nextAOIs):
     aois = {}
 
     for name, nextAOI in nextAOIs.items():
       nextArea = nextAOI.area
       if name not in self.ignores:
-        self.logger.info('curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
         nextCenter = nextAOI.center()
 
         if name in self.avgCenters:
@@ -85,7 +70,6 @@ class ChangeDetectYolo:
           if dist > self.distThreshold:
             aois[name] = nextAOI
         else:
-          self.logger.info('adding curr name (%s) prev names (%s)' % (name, repr(prevAOIs.keys())))
           aois[name] = nextAOI
 
         self.addCenter(nextCenter, name)
