@@ -16,10 +16,14 @@ def getCrossHairLines(center):
 
 def annotateImage(imgContext):
   image = imgContext.originalImage.copy()
+  detectorCount = 0
   for detector in imgContext.detectors:
     detectorName = detector['name']
     aois = detector['diffAreas']
     color = CONTOUR_COLORS[sum(str.encode(detectorName)) % len(CONTOUR_COLORS)]
+    addText(image, detectorName, (550, (40 + (30 * detectorCount))), color=color)
+    detectorCount += 1
+
     for aoiId, aoi in aois.items():
       area = aoi.area
       cv2.rectangle(image, (int(area[0]), int(area[1])), (int(area[2]), int(area[3])), color, 2)
