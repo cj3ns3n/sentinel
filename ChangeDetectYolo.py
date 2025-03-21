@@ -1,13 +1,13 @@
 from ultralytics import YOLO
-import numpy as np
 from time import time
 import cv2
 from logger import Logger
 from areaofinterest import AreaOfInterest
-
+from aoitracker import AoiTracker
+from hashlib import md5
 
 class ChangeDetectYolo:
-  def __init__(self, modelName='yolo11s.pt', ignores=[], confidenceThreshold=0.3, distThreshold=10, logger=None):
+  def __init__(self, modelName='yolo11m.pt', ignores=[], confidenceThreshold=0.3, distThreshold=10, logger=None):
     if logger:
       self.logger = logger
     else:
@@ -19,7 +19,7 @@ class ChangeDetectYolo:
     self.confidenceThreshold = confidenceThreshold
     self.distThreshold = distThreshold
     self.ignores = ignores
-    self.avgCenters = {}
+    self.aoiTrackers = {}
     self.avgWindowSize = 10
   # end def
 
@@ -58,56 +58,56 @@ class ChangeDetectYolo:
   def findAOIs(self, nextAOIs):
     aois = {}
 
+    keys = list(self.aoiTrackers)
+    notFoundKeys = keys.copy()
+
     for name, nextAOI in nextAOIs.items():
-      nextArea = nextAOI.area
-      if name not in self.ignores:
-        nextCenter = nextAOI.center()
+      nextCenter = nextAOI.center()
 
-        if name in self.avgCenters:
-          dist = np.linalg.norm(np.array(self.avgPoint(self.avgCenters[name])) - np.array(nextAOI.center()))
-          self.logger.info('dist %f (threshold: %f)' % (dist, self.distThreshold))
-          nextAOI.annotate_text.append('dist: %0.1f' % dist)
-          if dist > self.distThreshold:
-            aois[name] = nextAOI
-        else:
-          aois[name] = nextAOI
+      aoiCount = 0
+      found = False
+      while not found and aoiCount < len(keys):
+        try:
+          aoiTracker = self.aoiTrackers[keys[aoiCount]]
+          knownAoi = aoiTracker.generateAoi()
+          if knownAoi.contains(nextCenter):
+            found = True
+            notFoundKeys.remove(keys[aoiCount])
+            aoiTracker.addAoi(nextAOI.area)
+            newAoi = aoiTracker.generateAoi()
+            newAoi.annotate_cross_hairs.append(nextCenter)
+            newAoi.annotate_circles.append(newAoi.center())
+            aois[aoiTracker.name] = newAoi
+          # end if
+        except Exception as ex:
+          self.logger.error(ex)
+      # end while
 
-        self.addCenter(nextCenter, name)
-        nextAOI.annotate_cross_hairs.append(nextCenter)
-        nextAOI.annotate_circles.append(self.avgPoint(self.avgCenters[name]))
+      if not found:
+        nextArea = nextAOI.area
+        name = name + '_' + md5((str(nextArea[0]) + str(nextArea[1]) + str(nextArea[2]) + str(nextArea[3])).encode()).hexdigest()[:4]
+        nextAOI.name = name
+        nextAOI.annotate_cross_hairs.append(nextAOI.center())
+        aois[name] = nextAOI
+
+        try:
+          newTracker = AoiTracker(name, window_size=self.avgWindowSize)
+          newTracker.addAoi(nextAOI.area)
+          self.aoiTrackers[name] = newTracker
+        except Exception as ex:
+          self.logger.error(ex)
       # end if
+    # end for
+
+    # remove any inactive AOIs
+    for notFound in notFoundKeys:
+      self.aoiTrackers[notFound].addAoi(None)
+      if not self.aoiTrackers[notFound].isActive():
+        self.aoiTrackers.pop(notFound)
     # end for
 
     return aois
   # end def
-
-  def avgPoint(self, points):
-    xcoords = [point[0] for point in points]
-    ycoords = [point[1] for point in points]
-
-    xavg = sum(xcoords) / len(points)
-    yavg = sum(ycoords) / len(points)
-
-    return (xavg, yavg)
-  # end def
-
-  def addCenter(self, center, name):
-    if center == None:
-      if name in self.avgCenters:
-        newAvgs = self.avgCenters[name][1:]
-        if len(newAvgs) == 0:
-          self.avgCenters.pop(name)
-        else:
-          self.avgCenters[name] = newAvgs
-    else:
-      if name in self.avgCenters:
-        self.avgCenters[name].append(center)
-      else:
-        self.avgCenters[name] = [center]
-
-      if len(self.avgCenters[name]) > self.avgWindowSize:
-        self.avgCenters[name] = self.avgCenters[name][1:]
-    # end if
 # end class
 
 if __name__ == '__main__':
