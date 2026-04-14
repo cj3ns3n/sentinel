@@ -1,6 +1,7 @@
 from ultralytics import YOLO
 from time import time
 import cv2
+import math
 from logger import Logger
 from areaofinterest import AreaOfInterest
 from aoitracker import AoiTracker
@@ -74,10 +75,17 @@ class ChangeDetectYolo:
             found = True
             notFoundKeys.remove(keys[aoiCount])
             aoiTracker.addAoi(nextAOI.area)
-            newAoi = aoiTracker.generateAoi()
-            newAoi.annotate_cross_hairs.append(nextCenter)
-            newAoi.annotate_circles.append(newAoi.center())
-            aois[aoiTracker.name] = newAoi
+
+            aoiCenter = knownAoi.center()
+            dist = math.hypot(nextCenter[0] - aoiCenter[0], nextCenter[1] - aoiCenter[1])
+            self.logger.info('dist: %0.1f' % dist)
+            if dist > self.distThreshold:
+              newAoi = aoiTracker.generateAoi()
+              newAoi.annotate_cross_hairs.append(nextCenter)
+              newAoi.annotate_circles.append(newAoi.center())
+              newAoi.annotate_text.append('dist: %0.1f' % dist)
+              aois[aoiTracker.name] = newAoi
+            # end if
           # end if
         except Exception as ex:
           self.logger.error(ex)
