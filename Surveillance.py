@@ -7,6 +7,14 @@ from ChangeDetect import ChangeDetect
 from time import time
 from imageContext import ImageContext
 
+class Stats:
+  def __init__(self):
+    self.avgBufferSize = 0.0
+    self.avgProcessTime = 0.0
+    self.processedImages = 0
+    self.savedImages = 0
+# end class
+
 
 class Surveillance:
   def __init__(self, imageProducer, storageObserver, detectors, bufferSize=100, logger=None):
@@ -15,6 +23,7 @@ class Surveillance:
     self.imageBuffer = queue.Queue(bufferSize)
     self.storageBuffer = queue.Queue(bufferSize)
     self.prevImg = None
+    self.stats = Stats()
 
     if logger:
       self.logger = logger
@@ -37,21 +46,27 @@ class Surveillance:
 
     start = time()
     while not self.done(start, durationSec):
-      imgContext = self.imageBuffer.get()
-      self.imageBuffer.task_done()
+      try:
+        self.logger.info('(buffer before size: %d)' % self.imageBuffer.qsize())
+        imgContext = self.imageBuffer.get()
+        self.imageBuffer.task_done()
+        self.logger.info('(buffer after size: %d)' % self.imageBuffer.qsize())
 
-      if imgContext == None:
-        self.logger.error('NONE IMAGE!!!!!')
+        if imgContext == None:
+          self.logger.error('NONE IMAGE!!!!!')
 
-      if self.prevImg:
-        imgPair = [self.prevImg, imgContext]
-        changeProduct = self.diffImages(imgPair)
-        if len(changeProduct.detectors) > 0:
-          changeProduct.annotatedImage = utils.annotateImage(changeProduct)
-          self.storeImage(changeProduct)
-      # end if
+        if self.prevImg:
+          imgPair = [self.prevImg, imgContext]
+          changeProduct = self.diffImages(imgPair)
+          if len(changeProduct.detectors) > 0:
+            changeProduct.annotatedImage = utils.annotateImage(changeProduct)
+            self.storeImage(changeProduct)
+        # end if
 
-      self.prevImg = imgContext
+        self.prevImg = imgContext
+      except KeyboardInterrupt:
+        self.logger.info("sentinel stopped")
+        durationSec = 1
     # end while
   # end def
 
