@@ -84,7 +84,7 @@ if __name__ == '__main__':
   uploader = None
   if not config['localStorageOnly']:
     from storageGCS import SurveilUploader
-    uploader = SurveilUploader('surveil', config['zone'], Logger('SurveilUploader', display), config['zone'])
+    uploader = SurveilUploader('surveil', config['zone'], Logger('SurveilUploader', display))
   storageObserver = StorageObserver(zone=config['zone'], remoteUploader=uploader, logger=Logger('StorageObserver', display, config['zone']))
 
   surveillance = Surveillance(imgProducer, storageObserver, detectors, logger=Logger('Surveillance', display, config['zone']))
