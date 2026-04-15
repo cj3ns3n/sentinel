@@ -83,7 +83,7 @@ class ImageProducer:
     try:
       self.logger.info("retrieving url: %s" % (self.imageUrl))
       resp = urllib.request.urlopen(self.req, timeout=30)
-      image = cv2.imdecode(np.fromstring(resp.read(), dtype=np.uint8), cv2.IMREAD_COLOR)
+      image = cv2.imdecode(np.frombuffer(resp.read(), dtype=np.uint8), cv2.IMREAD_COLOR)
       #utils.addText(image, 'acquired: ' + utils.getTimestampId(), (10, 20))
 
       if image is None:
