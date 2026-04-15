@@ -11,6 +11,17 @@ class ChangeDetect:
   # end def
 
   def process(self, prevEvent, nextEvent):
+    for detector in self.changeDetectors:
+      diffResp = detector.process(prevEvent, nextEvent)
+      diffAreas = diffResp['diffAreas']
+
+      if len(diffAreas) > 0:
+        nextEvent.detectors.append({'diffAreas': diffAreas, 'name': diffResp['name']})
+        self.activeStateCallback()
+    # end for
+  # end def
+
+  def process_threaded(self, prevEvent, nextEvent):
     with ThreadPoolExecutor() as executor:
       futures = [executor.submit(detector.process, prevEvent, nextEvent) for detector in self.changeDetectors]
 
