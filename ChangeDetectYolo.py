@@ -67,7 +67,10 @@ class ChangeDetectYolo:
 
       aoiCount = 0
       found = False
+      self.logger.info('found %d aois' % len(keys))
       while not found and aoiCount < len(keys):
+        self.logger.info('checking aoi %d' % aoiCount)
+
         try:
           aoiTracker = self.aoiTrackers[keys[aoiCount]]
           knownAoi = aoiTracker.generateAoi()
@@ -89,6 +92,8 @@ class ChangeDetectYolo:
           # end if
         except Exception as ex:
           self.logger.error(ex)
+
+        aoiCount += 1
       # end while
 
       if not found:
