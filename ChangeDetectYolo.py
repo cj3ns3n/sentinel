@@ -91,7 +91,7 @@ class ChangeDetectYolo:
             # end if
           # end if
         except Exception as ex:
-          self.logger.error(ex)
+          self.logger.error(str(ex))
 
         aoiCount += 1
       # end while
