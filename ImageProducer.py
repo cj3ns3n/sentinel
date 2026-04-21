@@ -89,7 +89,7 @@ class ImageProducer:
       if image is None:
         self.logErr('failed to decode image')
     except Exception as ex:
-      self.logger.error(ex)
+      self.logger.error(str(ex))
 
     return image
   # end def
