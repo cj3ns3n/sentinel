@@ -44,12 +44,15 @@ class ChangeDetectYolo:
       # confidence is greater than the minimum confidence
       if confidence >= self.confidenceThreshold:
         id = int(data[5])
-        name = '%03d_%s' % (id, detections.names[id])
-        self.logger.info('detected: %s: %f' % (name, confidence))
-        diffAreas[name] = AreaOfInterest(name, data[:4])
-        # if the confidence is greater than the minimum confidence,
-        # draw the bounding box on the frame
-        #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
+        object_type = detections.names[id]
+        if object_type not in self.ignores:
+          name = '%03d_%s' % (id, object_type)
+          self.logger.info('detected: %s: %f' % (name, confidence))
+          diffAreas[name] = AreaOfInterest(name, data[:4])
+          # if the confidence is greater than the minimum confidence,
+          # draw the bounding box on the frame
+          #xmin, ymin, xmax, ymax = int(data[0]), int(data[1]), int(data[2]), int(data[3])
+        # end if
     # end for
 
     self.logger.info('detect time %f' % (time() - startTime))
