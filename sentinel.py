@@ -3,11 +3,16 @@ from StorageObserver import StorageObserver
 from Surveillance import Surveillance
 from logger import Logger
 from importlib import import_module
-from terminal_display import TerminalDisplay
 import time
 import threading
 import json
 import argparse
+
+try:
+  from terminal_display import TerminalDisplay
+except ImportError as e:
+  print("could not start curses terminal ", str(e))
+
 
 def getConfiguration(args):
   config = {'frequency': 20,
